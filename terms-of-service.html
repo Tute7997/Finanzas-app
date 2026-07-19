@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Términos de Servicio — FinanzasApp</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      var tema = localStorage.getItem('finanzas-theme');
+      if (!tema) tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
+</head>
+<body>
+  <div class="legal-page">
+    <header class="legal-header">
+      <a href="index.html" class="legal-logo">💰 FinanzasApp</a>
+      <button id="btn-theme-toggle" class="btn btn-icon" title="Cambiar tema">🌙</button>
+    </header>
+
+    <main class="legal-content">
+      <h1>Términos de Servicio</h1>
+      <p class="legal-fecha">Última actualización: 19 de julio de 2026</p>
+
+      <p>Estos Términos de Servicio regulan el uso de FinanzasApp. Al crear una cuenta o usar la aplicación, aceptás estos términos. Si no estás de acuerdo, no uses el servicio.</p>
+
+      <h2>1. Descripción del servicio</h2>
+      <p>FinanzasApp es una herramienta personal de organización financiera que te permite registrar ingresos, gastos, facturas, ahorros y recordatorios, visualizarlos en un dashboard y, opcionalmente, sincronizar recordatorios con Google Calendar.</p>
+      <p><strong>FinanzasApp no es un asesor financiero ni de inversiones.</strong> Los porcentajes de rentabilidad estimada y las comparativas del analizador de ahorros son referencias informativas, no una recomendación de inversión. Cualquier decisión financiera que tomes en base a la información mostrada en la app es de tu exclusiva responsabilidad.</p>
+
+      <h2>2. Uso aceptable</h2>
+      <ul>
+        <li>La cuenta es personal e intransferible — no compartas tu email y contraseña con otras personas.</li>
+        <li>No uses la app para cargar información falsa con el fin de dañar a terceros, ni para ningún propósito ilegal.</li>
+        <li>No intentes vulnerar la seguridad de la aplicación, acceder a datos de otros usuarios, ni sobrecargar el servicio deliberadamente.</li>
+      </ul>
+
+      <h2>3. Responsabilidades del usuario</h2>
+      <ul>
+        <li>Sos responsable de la exactitud de los datos que cargás — la app no verifica que un ingreso, gasto o factura sea real.</li>
+        <li>Sos responsable de mantener tu contraseña segura y de cerrar sesión en dispositivos compartidos.</li>
+        <li>Si conectás Google Calendar, sos responsable de revisar los permisos que le otorgás a la aplicación en la pantalla de consentimiento de Google.</li>
+      </ul>
+
+      <h2>4. Limitaciones de responsabilidad</h2>
+      <p>FinanzasApp se ofrece "tal cual", sin garantías de disponibilidad ininterrumpida ni de ausencia total de errores. En la medida permitida por la ley:</p>
+      <ul>
+        <li>No garantizamos que el servicio esté disponible el 100% del tiempo.</li>
+        <li>No somos responsables por pérdidas económicas derivadas de decisiones financieras tomadas en base a la información de la app.</li>
+        <li>No somos responsables por la pérdida de datos causada por un uso indebido de la cuenta por parte del usuario (por ejemplo, compartir la contraseña).</li>
+        <li>No somos responsables por interrupciones del servicio de Google Calendar u otros servicios de terceros de los que depende alguna función opcional.</li>
+      </ul>
+
+      <h2>5. Cambios en el servicio</h2>
+      <p>Podemos agregar, modificar o discontinuar funciones de la app en cualquier momento, incluyendo estos Términos de Servicio. Cuando hagamos cambios importantes, vamos a actualizar la fecha de "Última actualización" al principio de esta página. El uso continuado de la app después de un cambio implica la aceptación de los nuevos términos.</p>
+
+      <h2>6. Cancelación de cuenta</h2>
+      <p>Podés dejar de usar la app en cualquier momento. Si querés que eliminemos tu cuenta y todos tus datos de forma permanente, escribinos (ver Contacto).</p>
+
+      <h2>7. Contacto</h2>
+      <p>Para consultas sobre estos Términos de Servicio, escribinos a <a href="mailto:matiassantarelli2015@gmail.com">matiassantarelli2015@gmail.com</a>.</p>
+    </main>
+
+    <footer class="legal-footer">
+      <a href="privacy-policy.html">Política de Privacidad</a> · <a href="terms-of-service.html">Términos de Servicio</a> · <a href="index.html">Volver a FinanzasApp</a>
+    </footer>
+  </div>
+
+  <script>
+    var btn = document.getElementById('btn-theme-toggle');
+    btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    btn.addEventListener('click', function () {
+      var nuevo = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nuevo);
+      localStorage.setItem('finanzas-theme', nuevo);
+      btn.textContent = nuevo === 'dark' ? '☀️' : '🌙';
+    });
+  </script>
+</body>
+</html>

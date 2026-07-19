@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad — FinanzasApp</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      var tema = localStorage.getItem('finanzas-theme');
+      if (!tema) tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
+</head>
+<body>
+  <div class="legal-page">
+    <header class="legal-header">
+      <a href="index.html" class="legal-logo">💰 FinanzasApp</a>
+      <button id="btn-theme-toggle" class="btn btn-icon" title="Cambiar tema">🌙</button>
+    </header>
+
+    <main class="legal-content">
+      <h1>Política de Privacidad</h1>
+      <p class="legal-fecha">Última actualización: 19 de julio de 2026</p>
+
+      <p>Esta Política de Privacidad explica qué datos recopila FinanzasApp, cómo los usamos y qué derechos tenés sobre ellos. Al crear una cuenta y usar la aplicación, aceptás las prácticas descriptas acá.</p>
+
+      <h2>1. Qué datos recopilamos</h2>
+      <p>Recopilamos únicamente los datos que ingresás vos mismo al usar la app:</p>
+      <ul>
+        <li><strong>Datos de cuenta</strong>: email, contraseña (gestionada de forma segura por nuestro proveedor de autenticación, nunca almacenada en texto plano) y, opcionalmente, tu nombre.</li>
+        <li><strong>Datos financieros</strong>: los ingresos, gastos, facturas, ahorros y recordatorios que cargás manualmente o a través del chat de la app. Esto incluye montos, categorías, descripciones y fechas.</li>
+        <li><strong>Registro de comandos del chat</strong>: guardamos el texto de los comandos que escribís en el chat flotante y la respuesta que te dio la app, para que puedas ver el historial y para poder diagnosticar errores.</li>
+        <li><strong>Datos de Google Calendar</strong> (solo si elegís conectar esa integración): ver la sección 3.</li>
+      </ul>
+      <p>No recopilamos datos de terceros ni información financiera sensible como números de tarjeta o cuentas bancarias — FinanzasApp es una herramienta de registro manual, no se conecta a bancos ni billeteras.</p>
+
+      <h2>2. Cómo usamos los datos</h2>
+      <p>Usamos tus datos exclusivamente para:</p>
+      <ul>
+        <li>Mostrarte tu propio Dashboard, gráficos y listados dentro de la app.</li>
+        <li>Calcular totales, saldos y resúmenes sobre tu información financiera.</li>
+        <li>Sincronizar tus recordatorios con Google Calendar, si activaste esa función.</li>
+        <li>Responder a los comandos que escribís en el chat.</li>
+      </ul>
+      <p>No vendemos, alquilamos ni compartimos tus datos con terceros con fines comerciales o publicitarios. Cada cuenta solo puede ver y modificar su propia información — nunca la de otros usuarios.</p>
+
+      <h2>3. Google Calendar (OAuth)</h2>
+      <p>Si elegís conectar Google Calendar desde la pantalla de Ajustes, te vamos a pedir autorización a través de la pantalla de consentimiento de Google para el permiso <code>calendar.events</code> (crear y borrar eventos en tu calendario). Con esa autorización:</p>
+      <ul>
+        <li>Creamos un evento en tu Google Calendar cada vez que agendás un recordatorio nuevo en la app.</li>
+        <li>Borramos ese evento cuando marcás el recordatorio como completado o lo eliminás.</li>
+        <li>Guardamos de forma segura el token de acceso necesario para hacer esto, asociado únicamente a tu cuenta.</li>
+      </ul>
+      <p>No leemos ni accedemos a ningún otro evento de tu calendario, ni a otra información de tu cuenta de Google. Podés desconectar Google Calendar en cualquier momento desde Ajustes — al hacerlo, revocamos el acceso y eliminamos los tokens guardados.</p>
+
+      <h2>4. Seguridad de los datos</h2>
+      <p>Tus datos se almacenan en Supabase (una plataforma sobre PostgreSQL), con las siguientes protecciones:</p>
+      <ul>
+        <li><strong>Row Level Security (RLS)</strong>: a nivel de base de datos, cada fila de datos está atada a tu cuenta — ni siquiera un error en el código de la aplicación podría hacer que veas datos de otro usuario.</li>
+        <li><strong>Conexión encriptada</strong>: toda la comunicación entre tu navegador y nuestros servidores viaja por HTTPS/TLS.</li>
+        <li><strong>Contraseñas</strong>: nunca almacenamos tu contraseña en texto plano; la gestiona el sistema de autenticación de Supabase, que la guarda hasheada.</li>
+        <li><strong>Credenciales de Google</strong>: el Client Secret de la integración con Google Calendar vive únicamente en variables de entorno del servidor, nunca en el código que se envía a tu navegador.</li>
+      </ul>
+
+      <h2>5. Tus derechos</h2>
+      <p>Sobre tus propios datos, tenés derecho a:</p>
+      <ul>
+        <li><strong>Acceder</strong> a toda tu información en cualquier momento desde la propia app.</li>
+        <li><strong>Corregir o eliminar</strong> cualquier ingreso, gasto, factura, ahorro o recordatorio individual vos mismo, desde cada pestaña.</li>
+        <li><strong>Desconectar</strong> la integración con Google Calendar cuando quieras.</li>
+        <li><strong>Solicitar la eliminación completa de tu cuenta</strong> y de todos tus datos, escribiéndonos (ver Contacto).</li>
+      </ul>
+      <p>Si sos usuario en Argentina, estos derechos están alineados con la Ley 25.326 de Protección de Datos Personales. Si sos usuario de la Unión Europea, con el RGPD (GDPR).</p>
+
+      <h2>6. Cambios a esta política</h2>
+      <p>Podemos actualizar esta Política de Privacidad ocasionalmente. Si hacemos cambios importantes, lo vamos a indicar actualizando la fecha de "Última actualización" al principio de esta página.</p>
+
+      <h2>7. Contacto</h2>
+      <p>Si tenés preguntas sobre esta Política de Privacidad o sobre tus datos, escribinos a <a href="mailto:matiassantarelli2015@gmail.com">matiassantarelli2015@gmail.com</a>.</p>
+    </main>
+
+    <footer class="legal-footer">
+      <a href="privacy-policy.html">Política de Privacidad</a> · <a href="terms-of-service.html">Términos de Servicio</a> · <a href="index.html">Volver a FinanzasApp</a>
+    </footer>
+  </div>
+
+  <script>
+    var btn = document.getElementById('btn-theme-toggle');
+    btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    btn.addEventListener('click', function () {
+      var nuevo = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nuevo);
+      localStorage.setItem('finanzas-theme', nuevo);
+      btn.textContent = nuevo === 'dark' ? '☀️' : '🌙';
+    });
+  </script>
+</body>
+</html>

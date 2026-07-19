@@ -10,7 +10,7 @@
 // del README.md.
 // =====================================================================
 
-export const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+export const GOOGLE_CLIENT_ID = ''244272796765-5cufu2cbn748mfdq3hb0ede79ta5f61s.apps.googleusercontent.com'';
 export const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 // Google redirige acá (una función serverless de Vercel, ver

@@ -647,14 +647,14 @@ document.getElementById('tab-facturas').addEventListener('click', async (e) => {
   const btnPagar = e.target.closest('[data-accion="marcar-pagada"]');
   const btnDeshacer = e.target.closest('[data-accion="deshacer-pago"]');
   try {
-   if (btnPagar) {
-  const actualizada = await marcarFacturaPagada(btnPagar.dataset.id);
-  state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f);
+    if (btnPagar) {
+      const actualizada = await marcarFacturaPagada(btnPagar.dataset.id);
+      state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f));
       renderFacturas(state);
       renderDashboard(state);
     } else if (btnDeshacer) {
-      const actualizada = await deshacerPagoFactura(btnDeshacer.dataset.id));
-      state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f);
+      const actualizada = await deshacerPagoFactura(btnDeshacer.dataset.id);
+      state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f));
       renderFacturas(state);
       renderDashboard(state);
     }
@@ -662,7 +662,6 @@ document.getElementById('tab-facturas').addEventListener('click', async (e) => {
     mostrarToast('Error: ' + err.message);
   }
 });
-
 // ---------------------------------------------------------------------
 // Ahorros
 // ---------------------------------------------------------------------

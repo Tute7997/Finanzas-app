@@ -124,10 +124,7 @@ export async function deleteGasto(id) {
 
 export async function insertFactura({ dia_vencimiento, descripcion, monto, fecha }) {
   const sb = getCliente();
-  const session = await sb.auth.getSession();
-  const userId = session?.data?.session?.user?.id;
-  if (!userId) throw new Error('No hay sesión activa');
-  const { data, error } = await sb.from('facturas').insert({ dia_vencimiento, descripcion, monto, fecha, user_id: userId }).select().single();
+  const { data, error } = await sb.from('facturas').insert({ dia_vencimiento, descripcion, monto, fecha }).select().single();
   if (error) throw error;
   return data;
 }
@@ -172,12 +169,6 @@ export async function insertChatLog({ source = 'web', command, reply, status }) 
   return data;
 }
 
-export async function insertFactura({ dia_vencimiento, descripcion, monto, fecha }) {
-  const sb = getCliente();
-  const { data, error } = await sb.from('facturas').insert({ dia_vencimiento, descripcion, monto, fecha }).select().single();
-  if (error) throw error;
-  return data;
-}
 
 export async function deleteRecordatorio(id) {
   const sb = getCliente();
@@ -209,6 +200,13 @@ export async function actualizarUsuario(userId, patch) {
   const session = await sb.auth.getSession();
   const email = session?.data?.session?.user?.email;
   const { data, error } = await sb.from('usuarios').upsert({ id: userId, email, ...patch }).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function insertRecordatorio({ fecha, hora, descripcion }) {
+  const sb = getCliente();
+  const { data, error } = await sb.from('recordatorios').insert({ fecha, hora: hora || null, descripcion }).select().single();
   if (error) throw error;
   return data;
 }

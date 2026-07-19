@@ -784,7 +784,7 @@ document.getElementById('tabla-recordatorios').addEventListener('click', async (
   const btn = e.target.closest('[data-accion="eliminar-recordatorio"]');
   if (!btn) return;
   if (!confirm('¿Eliminar este recordatorio?')) return;
-  const id = Number(btn.dataset.id);
+ const id = btn.dataset.id;
   try {
     const recordatorio = state.recordatorios.find((r) => r.id === id);
     if (recordatorio) await borrarEventoCalendarSiCorresponde(recordatorio);

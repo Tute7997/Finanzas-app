@@ -181,3 +181,19 @@ create policy "recordatorios_delete_own" on public.recordatorios for delete usin
 -- chat_log
 create policy "chat_log_select_own" on public.chat_log for select using (user_id = auth.uid());
 create policy "chat_log_insert_own" on public.chat_log for insert with check (user_id = auth.uid());
+
+-- =====================================================================
+-- Ampliación: Términos y condiciones + integración con Google Calendar
+-- (agregado additivo, no toca las tablas ni las políticas de arriba)
+-- =====================================================================
+alter table public.usuarios
+  add column if not exists terminos_aceptados boolean not null default false,
+  add column if not exists fecha_aceptacion_terminos timestamptz,
+  add column if not exists google_calendar_token text,
+  add column if not exists google_calendar_refresh_token text,
+  add column if not exists google_calendar_expiry timestamptz,
+  add column if not exists google_calendar_conectado boolean not null default false,
+  add column if not exists updated_at timestamptz not null default now();
+
+alter table public.recordatorios
+  add column if not exists google_calendar_event_id text;

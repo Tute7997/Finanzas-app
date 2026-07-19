@@ -50,6 +50,24 @@
     </div>
   </div>
 
+  <!-- ===================== TÉRMINOS Y CONDICIONES ===================== -->
+  <div id="terminos-screen" class="auth-screen" hidden>
+    <div class="auth-card">
+      <h1 class="auth-logo">💰 FinanzasApp</h1>
+      <h2>Términos y condiciones</h2>
+      <div class="terminos-texto">
+        <!-- PLACEHOLDER: texto legal de ejemplo, reemplazar por el definitivo -->
+        <p>Al usar FinanzasApp, tus datos financieros personales (ingresos, gastos, facturas, ahorros y recordatorios) se almacenan de forma segura en Supabase, asociados únicamente a tu cuenta. FinanzasApp es una herramienta de organización personal y no constituye asesoramiento financiero ni de inversión profesional. Usás la app bajo tu propia responsabilidad.</p>
+      </div>
+      <form id="form-terminos" class="auth-form">
+        <label class="terminos-check"><input type="checkbox" id="terminos-check-aceptar" /> Acepto los términos y condiciones</label>
+        <label class="terminos-check"><input type="checkbox" id="terminos-check-calendar" /> Conectar Google Calendar (opcional)</label>
+        <p id="terminos-error" class="form-error" hidden></p>
+        <button type="submit" class="btn btn-primary">Continuar</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ===================== APP ===================== -->
   <div id="app-screen" class="app-screen" hidden>
 
@@ -129,6 +147,7 @@
             </select>
             <input type="text" id="ingreso-descripcion" placeholder="Descripción (opcional)" />
             <input type="number" id="ingreso-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <input type="date" id="ingreso-fecha" required />
             <button type="submit" class="btn btn-primary">Registrar</button>
           </form>
         </div>
@@ -166,6 +185,7 @@
             </select>
             <input type="text" id="gasto-descripcion" placeholder="Descripción (opcional)" />
             <input type="number" id="gasto-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <input type="date" id="gasto-fecha" required />
             <button type="submit" class="btn btn-primary">Registrar</button>
           </form>
         </div>
@@ -198,6 +218,7 @@
             <input type="number" id="factura-dia" placeholder="Día (1-31)" min="1" max="31" required />
             <input type="text" id="factura-descripcion" placeholder="Descripción" required />
             <input type="number" id="factura-monto" placeholder="Monto (opcional)" min="0" step="0.01" />
+            <input type="date" id="factura-fecha" required />
             <button type="submit" class="btn btn-primary">Agendar</button>
           </form>
           <form id="form-marcar-pagada" class="inline-form">
@@ -245,6 +266,7 @@
               <option value="FIMA C">FIMA C 22%</option>
               <option value="Otro">Otro</option>
             </select>
+            <input type="date" id="invertir-fecha" required />
             <button type="submit" class="btn btn-primary">Invertir</button>
           </form>
           <form id="form-retirar" class="inline-form">
@@ -259,6 +281,7 @@
               <option value="FIMA C">FIMA C</option>
               <option value="Otro">Otro</option>
             </select>
+            <input type="date" id="retirar-fecha" required />
             <button type="submit" class="btn btn-secondary">Retirar</button>
             <p id="retirar-error" class="form-error" hidden></p>
           </form>
@@ -296,6 +319,7 @@
             <input type="time" id="recordatorio-hora" />
             <button type="submit" class="btn btn-primary">Agregar recordatorio</button>
           </form>
+          <button id="btn-conectar-google-calendar" class="btn btn-secondary" hidden>📅 Conectar Google Calendar</button>
         </div>
 
         <div class="panel">

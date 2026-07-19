@@ -114,6 +114,10 @@ button, input, select {
 }
 .banner--warning { background: var(--warning-bg); color: var(--warning); }
 
+.terminos-texto { font-size: 0.85rem; color: var(--text-muted); max-height: 160px; overflow-y: auto; margin-bottom: 0.5rem; }
+.terminos-check { flex-direction: row !important; align-items: center; gap: 0.5rem !important; font-size: 0.9rem; color: var(--text); }
+.terminos-check input { width: auto; }
+
 /* ===================== Layout general de la app ===================== */
 .app-screen { min-height: 100vh; }
 

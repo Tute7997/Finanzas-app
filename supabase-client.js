@@ -96,9 +96,9 @@ export async function fetchRecordatorios() {
 // ---------------------------------------------------------------------
 // Mutators
 // ---------------------------------------------------------------------
-export async function insertIngreso({ categoria, descripcion, monto }) {
+export async function insertIngreso({ categoria, descripcion, monto, fecha }) {
   const sb = getCliente();
-  const { data, error } = await sb.from('ingresos').insert({ categoria, descripcion, monto }).select().single();
+  const { data, error } = await sb.from('ingresos').insert({ categoria, descripcion, monto, fecha }).select().single();
   if (error) throw error;
   return data;
 }
@@ -109,9 +109,9 @@ export async function deleteIngreso(id) {
   if (error) throw error;
 }
 
-export async function insertGasto({ categoria, descripcion, monto }) {
+export async function insertGasto({ categoria, descripcion, monto, fecha }) {
   const sb = getCliente();
-  const { data, error } = await sb.from('gastos').insert({ categoria, descripcion, monto }).select().single();
+  const { data, error } = await sb.from('gastos').insert({ categoria, descripcion, monto, fecha }).select().single();
   if (error) throw error;
   return data;
 }
@@ -122,9 +122,9 @@ export async function deleteGasto(id) {
   if (error) throw error;
 }
 
-export async function insertFactura({ dia_vencimiento, descripcion, monto }) {
+export async function insertFactura({ dia_vencimiento, descripcion, monto, fecha }) {
   const sb = getCliente();
-  const { data, error } = await sb.from('facturas').insert({ dia_vencimiento, descripcion, monto }).select().single();
+  const { data, error } = await sb.from('facturas').insert({ dia_vencimiento, descripcion, monto, fecha }).select().single();
   if (error) throw error;
   return data;
 }
@@ -155,9 +155,9 @@ export async function deshacerPagoFactura(id) {
 }
 
 // monto siempre positivo acá; el signo (invertir=+/retirar=-) lo decide el caller
-export async function insertAhorro({ tipo, monto, rentabilidad_estimada }) {
+export async function insertAhorro({ tipo, monto, rentabilidad_estimada, fecha }) {
   const sb = getCliente();
-  const { data, error } = await sb.from('ahorros').insert({ tipo, monto, rentabilidad_estimada }).select().single();
+  const { data, error } = await sb.from('ahorros').insert({ tipo, monto, rentabilidad_estimada, fecha }).select().single();
   if (error) throw error;
   return data;
 }
@@ -185,6 +185,20 @@ export async function deleteRecordatorio(id) {
 export async function marcarRecordatorioCompletado(id, completado) {
   const sb = getCliente();
   const { data, error } = await sb.from('recordatorios').update({ completado }).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function actualizarRecordatorio(id, patch) {
+  const sb = getCliente();
+  const { data, error } = await sb.from('recordatorios').update(patch).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function actualizarUsuario(userId, patch) {
+  const sb = getCliente();
+  const { data, error } = await sb.from('usuarios').update(patch).eq('id', userId).select().single();
   if (error) throw error;
   return data;
 }

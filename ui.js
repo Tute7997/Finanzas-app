@@ -259,6 +259,8 @@ export function renderRecordatorios(state) {
 
   const pendientes = state.recordatorios.filter((r) => !r.completado);
   document.getElementById('calendario-recordatorios').innerHTML = renderCalendarioRecordatorios(pendientes);
+
+  document.getElementById('btn-conectar-google-calendar').hidden = Boolean(state.usuario && state.usuario.google_calendar_conectado);
 }
 
 // ---------------------------------------------------------------------

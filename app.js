@@ -24,7 +24,17 @@ import {
   insertRecordatorio,
   deleteRecordatorio,
   marcarRecordatorioCompletado,
+  actualizarRecordatorio,
+  actualizarUsuario,
 } from './supabase-client.js';
+import { googleClientIdConfigurado } from './google-config.js';
+import {
+  buildAuthUrl,
+  intercambiarCodigo,
+  refrescarTokenSiHaceFalta,
+  crearEventoCalendar,
+  eliminarEventoCalendar,
+} from './google-calendar-client.js';
 import {
   renderAll,
   renderDashboard,
@@ -58,6 +68,36 @@ const state = {
 let chatNoLeidos = 0;
 
 // ---------------------------------------------------------------------
+// Fecha de hoy (para precargar los inputs de fecha de los formularios)
+// ---------------------------------------------------------------------
+const IDS_INPUT_FECHA = ['ingreso-fecha', 'gasto-fecha', 'factura-fecha', 'invertir-fecha', 'retirar-fecha'];
+
+function hoyISO() {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
+function precargarFechaHoy(id) {
+  const input = document.getElementById(id);
+  if (input) input.value = hoyISO();
+}
+
+function precargarFechasHoy() {
+  IDS_INPUT_FECHA.forEach(precargarFechaHoy);
+}
+
+// ---------------------------------------------------------------------
+// Mensajes de error más claros para fallas típicas de migración
+// ---------------------------------------------------------------------
+function mensajeErrorAmigable(err) {
+  const columnaFaltante = /column .* does not exist|could not find the .* column/i;
+  if (columnaFaltante.test(err.message || '')) {
+    return 'Falta actualizar la base de datos: corré el SQL de schema.sql en el SQL Editor de Supabase.';
+  }
+  return err.message;
+}
+
+// ---------------------------------------------------------------------
 // Toast de error/éxito genérico
 // ---------------------------------------------------------------------
 function mostrarToast(mensaje, tipo = 'error') {
@@ -73,39 +113,130 @@ function mostrarToast(mensaje, tipo = 'error') {
 // ---------------------------------------------------------------------
 async function mostrarApp(usuarioAuth) {
   document.getElementById('auth-screen').hidden = true;
-  document.getElementById('app-screen').hidden = false;
-  document.getElementById('floating-chat').hidden = false;
-
-  if (!state.charts) state.charts = initCharts();
 
   try {
-    const [perfil, ingresos, gastos, facturas, ahorros, chatLog, recordatorios] = await Promise.all([
-      fetchUsuario(usuarioAuth.id),
-      fetchIngresos(),
-      fetchGastos(),
-      fetchFacturas(),
-      fetchAhorros(),
-      fetchChatLog(),
-      fetchRecordatorios(),
-    ]);
-    state.usuario = { id: usuarioAuth.id, email: usuarioAuth.email, nombre: perfil ? perfil.nombre : null };
-    state.ingresos = ingresos;
-    state.gastos = gastos;
-    state.facturas = facturas;
-    state.ahorros = ahorros;
-    state.chatLog = chatLog;
-    state.recordatorios = recordatorios;
-    renderAll(state);
+    const perfil = await fetchUsuario(usuarioAuth.id);
+    state.usuario = perfil
+      ? { ...perfil, email: perfil.email || usuarioAuth.email }
+      : { id: usuarioAuth.id, email: usuarioAuth.email, nombre: null, terminos_aceptados: false, google_calendar_conectado: false };
+
+    if (!state.usuario.terminos_aceptados) {
+      mostrarTerminos();
+      return;
+    }
+    await mostrarDashboard();
+    await manejarCallbackGoogleSiCorresponde();
   } catch (err) {
     console.error('Error cargando datos:', err);
     mostrarToast('No se pudieron cargar los datos: ' + err.message);
   }
 }
 
-function mostrarAuth() {
+function mostrarTerminos() {
   document.getElementById('app-screen').hidden = true;
   document.getElementById('floating-chat').hidden = true;
+  document.getElementById('terminos-screen').hidden = false;
+}
+
+async function mostrarDashboard() {
+  document.getElementById('terminos-screen').hidden = true;
+  document.getElementById('app-screen').hidden = false;
+  document.getElementById('floating-chat').hidden = false;
+  if (!state.charts) state.charts = initCharts();
+  await cargarYRenderizarApp();
+}
+
+async function cargarYRenderizarApp() {
+  const [ingresos, gastos, facturas, ahorros, chatLog, recordatorios] = await Promise.all([
+    fetchIngresos(),
+    fetchGastos(),
+    fetchFacturas(),
+    fetchAhorros(),
+    fetchChatLog(),
+    fetchRecordatorios(),
+  ]);
+  state.ingresos = ingresos;
+  state.gastos = gastos;
+  state.facturas = facturas;
+  state.ahorros = ahorros;
+  state.chatLog = chatLog;
+  state.recordatorios = recordatorios;
+  renderAll(state);
+}
+
+function mostrarAuth() {
+  document.getElementById('app-screen').hidden = true;
+  document.getElementById('terminos-screen').hidden = true;
+  document.getElementById('floating-chat').hidden = true;
   document.getElementById('auth-screen').hidden = false;
+}
+
+// ---------------------------------------------------------------------
+// Google Calendar: callback OAuth + helpers de sincronización
+// ---------------------------------------------------------------------
+async function manejarCallbackGoogleSiCorresponde() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+
+  const stateRecibido = params.get('state');
+  const stateEsperado = sessionStorage.getItem('google_oauth_state');
+  sessionStorage.removeItem('google_oauth_state');
+  history.replaceState({}, '', window.location.pathname);
+
+  if (!stateEsperado || stateRecibido !== stateEsperado) {
+    mostrarToast('No se pudo verificar la conexión con Google Calendar.');
+    return;
+  }
+
+  try {
+    const tokens = await intercambiarCodigo(code);
+    const patch = {
+      google_calendar_token: tokens.access_token,
+      google_calendar_expiry: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+      google_calendar_conectado: true,
+    };
+    if (tokens.refresh_token) patch.google_calendar_refresh_token = tokens.refresh_token;
+    state.usuario = await actualizarUsuario(state.usuario.id, patch);
+    renderRecordatorios(state);
+    mostrarToast('Google Calendar conectado correctamente.', 'ok');
+  } catch (err) {
+    mostrarToast('No se pudo conectar Google Calendar: ' + mensajeErrorAmigable(err));
+  }
+}
+
+async function obtenerAccessTokenCalendar() {
+  const resultado = await refrescarTokenSiHaceFalta(state.usuario);
+  if (resultado.refrescado) {
+    state.usuario = await actualizarUsuario(state.usuario.id, {
+      google_calendar_token: resultado.accessToken,
+      google_calendar_expiry: resultado.expiry,
+    });
+  }
+  return resultado.accessToken;
+}
+
+async function sincronizarRecordatorioConCalendar(fila) {
+  if (!state.usuario.google_calendar_conectado) return fila;
+  try {
+    const accessToken = await obtenerAccessTokenCalendar();
+    const eventId = await crearEventoCalendar(accessToken, { descripcion: fila.descripcion, fecha: fila.fecha, hora: fila.hora });
+    return await actualizarRecordatorio(fila.id, { google_calendar_event_id: eventId });
+  } catch (err) {
+    console.error('Error creando evento de Google Calendar:', err);
+    mostrarToast('El recordatorio se guardó, pero no se pudo sincronizar con Google Calendar.');
+    return fila;
+  }
+}
+
+async function borrarEventoCalendarSiCorresponde(recordatorio) {
+  if (!recordatorio.google_calendar_event_id || !state.usuario.google_calendar_conectado) return;
+  try {
+    const accessToken = await obtenerAccessTokenCalendar();
+    await eliminarEventoCalendar(accessToken, recordatorio.google_calendar_event_id);
+  } catch (err) {
+    console.error('Error borrando evento de Google Calendar:', err);
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -114,6 +245,7 @@ function mostrarAuth() {
 async function init() {
   const temaGuardado = document.documentElement.getAttribute('data-theme') || 'light';
   applyTheme(temaGuardado);
+  precargarFechasHoy();
 
   if (!supabaseConfigurado()) {
     document.getElementById('auth-banner-config').hidden = false;
@@ -204,6 +336,44 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------
+// Términos y condiciones
+// ---------------------------------------------------------------------
+document.getElementById('form-terminos').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById('terminos-error');
+  errorEl.hidden = true;
+  if (!document.getElementById('terminos-check-aceptar').checked) {
+    errorEl.textContent = 'Tenés que aceptar los términos para continuar.';
+    errorEl.hidden = false;
+    return;
+  }
+  const conectarCalendar = document.getElementById('terminos-check-calendar').checked;
+  try {
+    state.usuario = await actualizarUsuario(state.usuario.id, {
+      terminos_aceptados: true,
+      fecha_aceptacion_terminos: new Date().toISOString(),
+    });
+    if (conectarCalendar) {
+      if (!googleClientIdConfigurado()) {
+        mostrarToast('Google Calendar no está configurado todavía (ver google-config.js).');
+        await mostrarDashboard();
+        return;
+      }
+      window.location.href = buildAuthUrl();
+      return;
+    }
+    await mostrarDashboard();
+  } catch (err) {
+    mostrarToast('Error al guardar: ' + mensajeErrorAmigable(err));
+  }
+});
+
+document.getElementById('btn-conectar-google-calendar').addEventListener('click', () => {
+  if (!googleClientIdConfigurado()) return mostrarToast('Google Calendar no está configurado todavía (ver google-config.js).');
+  window.location.href = buildAuthUrl();
+});
+
+// ---------------------------------------------------------------------
 // Tema
 // ---------------------------------------------------------------------
 document.getElementById('btn-theme-toggle').addEventListener('click', () => {
@@ -229,13 +399,16 @@ document.getElementById('form-ingreso').addEventListener('submit', async (e) => 
   const categoria = document.getElementById('ingreso-categoria').value;
   const descripcion = document.getElementById('ingreso-descripcion').value.trim() || null;
   const monto = Number(document.getElementById('ingreso-monto').value);
+  const fecha = document.getElementById('ingreso-fecha').value;
   if (!(monto > 0)) return mostrarToast('El monto tiene que ser mayor a 0.');
+  if (!fecha) return mostrarToast('Elegí una fecha.');
   try {
-    const fila = await insertIngreso({ categoria, descripcion, monto });
+    const fila = await insertIngreso({ categoria, descripcion, monto, fecha });
     state.ingresos.unshift(fila);
     renderIngresos(state);
     renderDashboard(state);
     e.target.reset();
+    precargarFechaHoy('ingreso-fecha');
   } catch (err) {
     mostrarToast('Error al registrar el ingreso: ' + err.message);
   }
@@ -280,13 +453,16 @@ document.getElementById('form-gasto').addEventListener('submit', async (e) => {
   const categoria = document.getElementById('gasto-categoria').value;
   const descripcion = document.getElementById('gasto-descripcion').value.trim() || null;
   const monto = Number(document.getElementById('gasto-monto').value);
+  const fecha = document.getElementById('gasto-fecha').value;
   if (!(monto > 0)) return mostrarToast('El monto tiene que ser mayor a 0.');
+  if (!fecha) return mostrarToast('Elegí una fecha.');
   try {
-    const fila = await insertGasto({ categoria, descripcion, monto });
+    const fila = await insertGasto({ categoria, descripcion, monto, fecha });
     state.gastos.unshift(fila);
     renderGastos(state);
     renderDashboard(state);
     e.target.reset();
+    precargarFechaHoy('gasto-fecha');
   } catch (err) {
     mostrarToast('Error al registrar el gasto: ' + err.message);
   }
@@ -345,8 +521,7 @@ async function compactar(entidad) {
       const monto = grupo.reduce((acc, f) => acc + Number(f.monto), 0);
       const descripcion = [...new Set(grupo.map((f) => f.descripcion).filter(Boolean))].join(', ') || null;
       for (const f of grupo) await eliminar(f.id);
-      const nueva = await insertar({ categoria: grupo[0].categoria, descripcion, monto });
-      nueva.fecha = grupo[0].fecha; // conservar la fecha original del grupo
+      await insertar({ categoria: grupo[0].categoria, descripcion, monto, fecha: grupo[0].fecha });
     }
     if (esIngreso) {
       state.ingresos = await fetchIngresos();
@@ -371,14 +546,17 @@ document.getElementById('form-agendar-factura').addEventListener('submit', async
   const descripcion = document.getElementById('factura-descripcion').value.trim();
   const montoStr = document.getElementById('factura-monto').value;
   const monto = montoStr ? Number(montoStr) : null;
+  const fecha = document.getElementById('factura-fecha').value;
   if (!(dia >= 1 && dia <= 31)) return mostrarToast('El día tiene que ser entre 1 y 31.');
   if (!descripcion) return mostrarToast('Ingresá una descripción.');
+  if (!fecha) return mostrarToast('Elegí una fecha.');
   try {
-    const fila = await insertFactura({ dia_vencimiento: dia, descripcion, monto });
+    const fila = await insertFactura({ dia_vencimiento: dia, descripcion, monto, fecha });
     state.facturas.unshift(fila);
     renderFacturas(state);
     renderDashboard(state);
     e.target.reset();
+    precargarFechaHoy('factura-fecha');
   } catch (err) {
     mostrarToast('Error al agendar la factura: ' + err.message);
   }
@@ -446,12 +624,15 @@ document.getElementById('form-invertir').addEventListener('submit', async (e) =>
   e.preventDefault();
   const monto = Number(document.getElementById('invertir-monto').value);
   const tipo = document.getElementById('invertir-tipo').value;
+  const fecha = document.getElementById('invertir-fecha').value;
   if (!(monto > 0)) return mostrarToast('El monto tiene que ser mayor a 0.');
+  if (!fecha) return mostrarToast('Elegí una fecha.');
   try {
-    const fila = await insertAhorro({ tipo, monto, rentabilidad_estimada: TIPOS_AHORRO[tipo] });
+    const fila = await insertAhorro({ tipo, monto, rentabilidad_estimada: TIPOS_AHORRO[tipo], fecha });
     state.ahorros.unshift(fila);
     renderAhorros(state);
     e.target.reset();
+    precargarFechaHoy('invertir-fecha');
   } catch (err) {
     mostrarToast('Error al invertir: ' + err.message);
   }
@@ -463,7 +644,9 @@ document.getElementById('form-retirar').addEventListener('submit', async (e) => 
   errorEl.hidden = true;
   const monto = Number(document.getElementById('retirar-monto').value);
   const tipo = document.getElementById('retirar-tipo').value;
+  const fecha = document.getElementById('retirar-fecha').value;
   if (!(monto > 0)) return mostrarToast('El monto tiene que ser mayor a 0.');
+  if (!fecha) return mostrarToast('Elegí una fecha.');
   const disponible = holdingActual(tipo);
   if (monto > disponible) {
     errorEl.textContent = `No tenés suficiente saldo en ${tipo} (disponible: ${formatMonto(disponible)}).`;
@@ -471,10 +654,11 @@ document.getElementById('form-retirar').addEventListener('submit', async (e) => 
     return;
   }
   try {
-    const fila = await insertAhorro({ tipo, monto: -monto, rentabilidad_estimada: TIPOS_AHORRO[tipo] });
+    const fila = await insertAhorro({ tipo, monto: -monto, rentabilidad_estimada: TIPOS_AHORRO[tipo], fecha });
     state.ahorros.unshift(fila);
     renderAhorros(state);
     e.target.reset();
+    precargarFechaHoy('retirar-fecha');
   } catch (err) {
     mostrarToast('Error al retirar: ' + err.message);
   }
@@ -500,7 +684,8 @@ document.getElementById('form-recordatorio').addEventListener('submit', async (e
   if (!fecha) return mostrarToast('Elegí una fecha.');
   try {
     const fila = await insertRecordatorio({ fecha, hora, descripcion });
-    state.recordatorios.unshift(fila);
+    const filaFinal = await sincronizarRecordatorioConCalendar(fila);
+    state.recordatorios.unshift(filaFinal);
     renderRecordatorios(state);
     e.target.reset();
   } catch (err) {
@@ -514,6 +699,8 @@ document.getElementById('tabla-recordatorios').addEventListener('click', async (
   if (!confirm('¿Eliminar este recordatorio?')) return;
   const id = Number(btn.dataset.id);
   try {
+    const recordatorio = state.recordatorios.find((r) => r.id === id);
+    if (recordatorio) await borrarEventoCalendarSiCorresponde(recordatorio);
     await deleteRecordatorio(id);
     state.recordatorios = state.recordatorios.filter((r) => r.id !== id);
     renderRecordatorios(state);
@@ -528,7 +715,14 @@ document.getElementById('tabla-recordatorios').addEventListener('change', async 
   const id = Number(checkbox.dataset.id);
   const completado = checkbox.checked;
   try {
-    const actualizada = await marcarRecordatorioCompletado(id, completado);
+    const recordatorio = state.recordatorios.find((r) => r.id === id);
+    let actualizada;
+    if (completado && recordatorio && recordatorio.google_calendar_event_id) {
+      await borrarEventoCalendarSiCorresponde(recordatorio);
+      actualizada = await actualizarRecordatorio(id, { completado: true, google_calendar_event_id: null });
+    } else {
+      actualizada = await marcarRecordatorioCompletado(id, completado);
+    }
     state.recordatorios = state.recordatorios.map((r) => (r.id === actualizada.id ? actualizada : r));
     renderRecordatorios(state);
   } catch (err) {
@@ -634,7 +828,8 @@ async function manejarComandoChat(texto) {
       }
     } else if (resultado.type === 'recordatorio') {
       const fila = await insertRecordatorio(resultado.payload);
-      state.recordatorios.unshift(fila);
+      const filaFinal = await sincronizarRecordatorioConCalendar(fila);
+      state.recordatorios.unshift(filaFinal);
       renderRecordatorios(state);
       reply = `Recordatorio agendado: "${resultado.payload.descripcion}" para el ${formatFecha(resultado.payload.fecha)}${resultado.payload.hora ? ' a las ' + resultado.payload.hora : ''}.`;
       status = 'OK';

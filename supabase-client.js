@@ -172,15 +172,13 @@ export async function insertChatLog({ source = 'web', command, reply, status }) 
   return data;
 }
 
-export async function insertRecordatorio({ fecha, hora, descripcion }) {
+export async function insertFactura({ dia_vencimiento, descripcion, monto, fecha }) {
   const sb = getCliente();
-  const session = await sb.auth.getSession();
-  const userId = session?.data?.session?.user?.id;
-  if (!userId) throw new Error('No hay sesión activa');
-  const { data, error } = await sb.from('recordatorios').insert({ fecha, hora: hora || null, descripcion, user_id: userId }).select().single();
+  const { data, error } = await sb.from('facturas').insert({ dia_vencimiento, descripcion, monto, fecha }).select().single();
   if (error) throw error;
   return data;
 }
+
 export async function deleteRecordatorio(id) {
   const sb = getCliente();
   const { error } = await sb.from('recordatorios').delete().eq('id', id);

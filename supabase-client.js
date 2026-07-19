@@ -129,6 +129,12 @@ export async function insertFactura({ dia_vencimiento, descripcion, monto, fecha
   return data;
 }
 
+export async function deleteFactura(id) {
+  const sb = getCliente();
+  const { error } = await sb.from('facturas').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function marcarFacturaPagada(id) {
   const sb = getCliente();
   const hoy = new Date().toISOString().slice(0, 10);

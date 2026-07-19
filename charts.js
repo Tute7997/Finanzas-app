@@ -196,7 +196,7 @@ export function updateAhorrosLineaChart(chart, ahorros) {
 }
 
 // ---------------------------------------------------------------------
-// Calendario de 30 días (grilla HTML/CSS, no es un chart de Chart.js)
+// Calendario del mes actual (grilla HTML/CSS, no es un chart de Chart.js)
 // ---------------------------------------------------------------------
 function formatISODate(d) {
   const y = d.getFullYear();
@@ -207,13 +207,16 @@ function formatISODate(d) {
 
 // items: filas ya filtradas por el caller (p.ej. sólo pendientes).
 // matchFn(fechaCelda, item) => boolean decide si ese item marca ese día.
-export function renderCalendario30Dias(items, matchFn) {
+// Muestra siempre el mes calendario actual completo (día 1 hasta el
+// último día del mes), no una ventana móvil desde hoy.
+export function renderCalendarioMesActual(items, matchFn) {
   const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  const anio = hoy.getFullYear();
+  const mes = hoy.getMonth();
+  const ultimoDia = new Date(anio, mes + 1, 0).getDate();
   const celdas = [];
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + i);
-    const dia = d.getDate();
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const d = new Date(anio, mes, dia);
     const marcado = items.some((item) => matchFn(d, item));
     celdas.push(
       `<div class="calendario-celda${marcado ? ' calendario-celda--vence' : ''}" data-fecha="${formatISODate(d)}" title="${d.toLocaleDateString('es-AR')}">` +
@@ -226,10 +229,10 @@ export function renderCalendario30Dias(items, matchFn) {
 
 // Las facturas vencen todos los meses el mismo día (recurrencia por día-del-mes).
 export function renderCalendarioFacturas(facturasPendientes) {
-  return renderCalendario30Dias(facturasPendientes, (d, f) => f.dia_vencimiento === d.getDate());
+  return renderCalendarioMesActual(facturasPendientes, (d, f) => f.dia_vencimiento === d.getDate());
 }
 
 // Los recordatorios tienen una fecha puntual, no recurrente.
 export function renderCalendarioRecordatorios(recordatoriosPendientes) {
-  return renderCalendario30Dias(recordatoriosPendientes, (d, r) => r.fecha === formatISODate(d));
+  return renderCalendarioMesActual(recordatoriosPendientes, (d, r) => r.fecha === formatISODate(d));
 }

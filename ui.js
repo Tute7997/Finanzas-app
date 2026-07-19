@@ -172,7 +172,10 @@ export function renderFacturas(state) {
           (f) =>
             `<div class="factura-card factura-card--pendiente">` +
             `<div class="factura-card-info"><span class="factura-card-nombre">${f.descripcion}</span><span class="factura-card-meta">Día ${f.dia_vencimiento} · en ${diasHastaVencimiento(f.dia_vencimiento)}d · ${formatMonto(f.monto || 0)}</span></div>` +
+            `<div class="factura-card-acciones">` +
             `<button class="btn btn-secondary" data-accion="marcar-pagada" data-id="${f.id}">Marcar pagada</button>` +
+            `<button class="tabla-eliminar" data-accion="eliminar-factura" data-id="${f.id}">🗑️</button>` +
+            `</div>` +
             `</div>`
         )
         .join('')
@@ -184,7 +187,10 @@ export function renderFacturas(state) {
           (f) =>
             `<div class="factura-card factura-card--pagada">` +
             `<div class="factura-card-info"><span class="factura-card-nombre">${f.descripcion}</span><span class="factura-card-meta">${formatMonto(f.monto || 0)} · pagada el ${formatFecha(f.fecha_pago)}</span></div>` +
+            `<div class="factura-card-acciones">` +
             `<button class="btn btn-secondary" data-accion="deshacer-pago" data-id="${f.id}">Deshacer pago</button>` +
+            `<button class="tabla-eliminar" data-accion="eliminar-factura" data-id="${f.id}">🗑️</button>` +
+            `</div>` +
             `</div>`
         )
         .join('')

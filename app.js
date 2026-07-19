@@ -16,6 +16,7 @@ import {
   insertGasto,
   deleteGasto,
   insertFactura,
+  deleteFactura,
   marcarFacturaPagada,
   deshacerPagoFactura,
   insertAhorro,
@@ -612,6 +613,15 @@ document.getElementById('form-agendar-factura').addEventListener('submit', async
   }
 });
 
+// Click en el calendario del mes: precarga el día de vencimiento en el
+// formulario de agendar (la fecha de alta sigue siendo la de hoy/elegida
+// en #factura-fecha, son conceptos distintos).
+document.getElementById('calendario-facturas').addEventListener('click', (e) => {
+  const celda = e.target.closest('[data-fecha]');
+  if (!celda) return;
+  document.getElementById('factura-dia').value = String(Number(celda.dataset.fecha.slice(8, 10)));
+});
+
 function resolverFacturaPendiente(query, facturas) {
   const q = query.toLowerCase();
   const matches = facturas.filter((f) => f.estado === 'pendiente' && f.descripcion.toLowerCase().includes(q));
@@ -646,6 +656,7 @@ document.getElementById('form-marcar-pagada').addEventListener('submit', async (
 document.getElementById('tab-facturas').addEventListener('click', async (e) => {
   const btnPagar = e.target.closest('[data-accion="marcar-pagada"]');
   const btnDeshacer = e.target.closest('[data-accion="deshacer-pago"]');
+  const btnEliminar = e.target.closest('[data-accion="eliminar-factura"]');
   try {
     if (btnPagar) {
       const actualizada = await marcarFacturaPagada(btnPagar.dataset.id);
@@ -655,6 +666,12 @@ document.getElementById('tab-facturas').addEventListener('click', async (e) => {
     } else if (btnDeshacer) {
       const actualizada = await deshacerPagoFactura(btnDeshacer.dataset.id);
       state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f));
+      renderFacturas(state);
+      renderDashboard(state);
+    } else if (btnEliminar) {
+      if (!confirm('¿Eliminar esta factura?')) return;
+      await deleteFactura(btnEliminar.dataset.id);
+      state.facturas = state.facturas.filter((f) => f.id !== Number(btnEliminar.dataset.id));
       renderFacturas(state);
       renderDashboard(state);
     }
@@ -761,13 +778,29 @@ document.getElementById('calendario-recordatorios').addEventListener('click', (e
   sincronizarDiaDesdeFecha();
 });
 
+// Combina los 3 selects de hora (1-12, minutos, AM/PM) a formato 24hs
+// "HH:MM". Devuelve hora=null si no se eligió ninguno (sigue siendo
+// opcional); devuelve error si se completó alguno pero no los tres.
+function obtenerHoraSeleccionada() {
+  const h = document.getElementById('recordatorio-hora-h').value;
+  const m = document.getElementById('recordatorio-hora-m').value;
+  const ampm = document.getElementById('recordatorio-hora-ampm').value;
+  const completados = [h, m, ampm].filter((v) => v !== '').length;
+  if (completados === 0) return { hora: null, error: null };
+  if (completados < 3) return { hora: null, error: 'Completá hora, minutos y AM/PM, o dejá los tres en blanco.' };
+  let hora24 = Number(h) % 12;
+  if (ampm === 'PM') hora24 += 12;
+  return { hora: `${String(hora24).padStart(2, '0')}:${String(Number(m)).padStart(2, '0')}`, error: null };
+}
+
 document.getElementById('form-recordatorio').addEventListener('submit', async (e) => {
   e.preventDefault();
   const descripcion = document.getElementById('recordatorio-descripcion').value.trim();
   const fecha = document.getElementById('recordatorio-fecha').value;
-  const hora = document.getElementById('recordatorio-hora').value || null;
   if (!descripcion) return mostrarToast('Ingresá una descripción.');
   if (!fecha) return mostrarToast('Elegí una fecha.');
+  const { hora, error: errorHora } = obtenerHoraSeleccionada();
+  if (errorHora) return mostrarToast(errorHora);
   try {
     const fila = await insertRecordatorio({ fecha, hora, descripcion });
     const filaFinal = await sincronizarRecordatorioConCalendar(fila);

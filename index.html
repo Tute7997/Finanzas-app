@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Aplicar el tema guardado ANTES del primer paint, para evitar el
+    // flash de tema incorrecto.
+    (function () {
+      var tema = localStorage.getItem('finanzas-theme');
+      if (!tema) tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- ===================== PANTALLA DE AUTENTICACIÓN ===================== -->
+  <div id="auth-screen" class="auth-screen" hidden>
+    <div class="auth-card">
+      <h1 class="auth-logo">💰 FinanzasApp</h1>
+
+      <div id="auth-banner-config" class="banner banner--warning" hidden>
+        Configurá tu proyecto de Supabase en <code>supabase-config.js</code> antes de usar la app.
+        Mirá el <code>README.md</code> para los pasos.
+      </div>
+
+      <form id="form-login" class="auth-form">
+        <h2>Iniciar sesión</h2>
+        <label>Email<input type="email" id="login-email" required autocomplete="email" /></label>
+        <label>Contraseña<input type="password" id="login-password" required autocomplete="current-password" /></label>
+        <button type="submit" class="btn btn-primary">Entrar</button>
+        <p class="auth-switch">¿No tenés cuenta? <a href="#" id="ir-a-signup">Registrate</a></p>
+        <p id="login-error" class="form-error" hidden></p>
+      </form>
+
+      <form id="form-signup" class="auth-form" hidden>
+        <h2>Crear cuenta</h2>
+        <label>Nombre<input type="text" id="signup-nombre" placeholder="Opcional" /></label>
+        <label>Email<input type="email" id="signup-email" required autocomplete="email" /></label>
+        <label>Contraseña<input type="password" id="signup-password" required minlength="6" autocomplete="new-password" /></label>
+        <label>Confirmar contraseña<input type="password" id="signup-password-confirm" required minlength="6" autocomplete="new-password" /></label>
+        <button type="submit" class="btn btn-primary">Crear cuenta</button>
+        <p class="auth-switch">¿Ya tenés cuenta? <a href="#" id="ir-a-login">Iniciar sesión</a></p>
+        <p id="signup-error" class="form-error" hidden></p>
+        <p id="signup-info" class="form-info" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== APP ===================== -->
+  <div id="app-screen" class="app-screen" hidden>
+
+    <header class="app-header">
+      <div class="app-header-left">
+        <span class="app-logo">💰 FinanzasApp</span>
+      </div>
+      <div class="app-header-right">
+        <span id="usuario-nombre" class="usuario-nombre"></span>
+        <button id="btn-theme-toggle" class="btn btn-icon" title="Cambiar tema">🌙</button>
+        <button id="btn-logout" class="btn btn-secondary">Salir</button>
+      </div>
+    </header>
+
+    <nav class="tabs-nav">
+      <button class="tab-btn is-active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab-btn" data-tab="ingresos">💵 Ingresos</button>
+      <button class="tab-btn" data-tab="gastos">💸 Gastos</button>
+      <button class="tab-btn" data-tab="facturas">📑 Facturas</button>
+      <button class="tab-btn" data-tab="ahorros">💰 Ahorros</button>
+      <button class="tab-btn" data-tab="recordatorios">⏰ Recordatorios</button>
+    </nav>
+
+    <main class="tabs-content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section id="tab-dashboard" class="tab-panel is-active">
+        <div class="cards-grid">
+          <button class="card card--clickable" data-goto="ingresos">
+            <span class="card-label">Saldo libre</span>
+            <span class="card-value" id="card-saldo">$0</span>
+          </button>
+          <button class="card card--clickable" data-goto="ingresos">
+            <span class="card-label">Ingresos del mes</span>
+            <span class="card-value card-value--ok" id="card-ingresos-mes">$0</span>
+          </button>
+          <button class="card card--clickable" data-goto="gastos">
+            <span class="card-label">Gastos del mes</span>
+            <span class="card-value card-value--danger" id="card-gastos-mes">$0</span>
+          </button>
+          <button class="card card--clickable" data-goto="facturas">
+            <span class="card-label">Facturas pendientes</span>
+            <span class="card-value card-value--warning" id="card-facturas-pendientes">$0</span>
+          </button>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-box"><h3>Ingresos vs Gastos</h3><canvas id="chart-ingresos-vs-gastos"></canvas></div>
+          <div class="chart-box"><h3>Evolución de saldo (12 meses)</h3><canvas id="chart-saldo-evolucion"></canvas></div>
+        </div>
+
+        <div class="panels-grid">
+          <div class="panel">
+            <h3>Próximas facturas por vencer</h3>
+            <div id="panel-proximas-facturas" class="panel-list"></div>
+          </div>
+          <div class="panel">
+            <h3>Resumen de facturas</h3>
+            <div id="panel-resumen-facturas" class="panel-list"></div>
+          </div>
+          <div class="panel">
+            <h3>Últimas transacciones</h3>
+            <div id="panel-ultimas-transacciones" class="panel-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INGRESOS ============ -->
+      <section id="tab-ingresos" class="tab-panel">
+        <div class="form-card">
+          <form id="form-ingreso" class="inline-form">
+            <select id="ingreso-categoria" required>
+              <option value="Sueldo">Sueldo</option>
+              <option value="Operaciones">Operaciones</option>
+              <option value="Extras">Extras</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <input type="text" id="ingreso-descripcion" placeholder="Descripción (opcional)" />
+            <input type="number" id="ingreso-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <button type="submit" class="btn btn-primary">Registrar</button>
+          </form>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-box"><h3>Por categoría</h3><canvas id="chart-ingresos-pie"></canvas></div>
+          <div class="chart-box"><h3>Últimos 6 meses</h3><canvas id="chart-ingresos-bar6m"></canvas></div>
+        </div>
+
+        <div class="listado-card">
+          <div class="listado-actions">
+            <button id="btn-compactar-ingresos" class="btn btn-secondary">♻️ Compactar ingresos</button>
+            <button id="btn-borrar-ultimo-ingreso" class="btn btn-danger-outline">🗑️ Borrar último ingreso</button>
+          </div>
+          <table class="tabla">
+            <thead><tr><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th></th></tr></thead>
+            <tbody id="tabla-ingresos"></tbody>
+            <tfoot><tr><td colspan="2">Total</td><td id="ingresos-total" colspan="3">$0</td></tr></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ GASTOS ============ -->
+      <section id="tab-gastos" class="tab-panel">
+        <div class="form-card">
+          <form id="form-gasto" class="inline-form">
+            <select id="gasto-categoria" required>
+              <option value="Comida">Comida</option>
+              <option value="Almacén">Almacén</option>
+              <option value="Nafta">Nafta</option>
+              <option value="Supermercado">Supermercado</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Salud">Salud</option>
+              <option value="Otros">Otros</option>
+            </select>
+            <input type="text" id="gasto-descripcion" placeholder="Descripción (opcional)" />
+            <input type="number" id="gasto-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <button type="submit" class="btn btn-primary">Registrar</button>
+          </form>
+        </div>
+
+        <div class="charts-grid charts-grid--3">
+          <div class="chart-box"><h3>Por categoría</h3><canvas id="chart-gastos-pie"></canvas></div>
+          <div class="chart-box"><h3>Top 5 categorías</h3><canvas id="chart-gastos-top5"></canvas></div>
+          <div class="chart-box"><h3>Últimos 6 meses</h3><canvas id="chart-gastos-bar6m"></canvas></div>
+        </div>
+
+        <div class="listado-card">
+          <div class="listado-actions">
+            <button id="btn-compactar-gastos" class="btn btn-secondary">♻️ Compactar gastos</button>
+            <button id="btn-borrar-ultimo-gasto" class="btn btn-danger-outline">🗑️ Borrar último gasto</button>
+          </div>
+          <div id="gastos-subtotales" class="subtotales"></div>
+          <table class="tabla">
+            <thead><tr><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th></th></tr></thead>
+            <tbody id="tabla-gastos"></tbody>
+            <tfoot><tr><td colspan="2">Total</td><td id="gastos-total" colspan="3">$0</td></tr></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ FACTURAS ============ -->
+      <section id="tab-facturas" class="tab-panel">
+        <div class="form-card form-card--split">
+          <form id="form-agendar-factura" class="inline-form">
+            <h3>Agendar</h3>
+            <input type="number" id="factura-dia" placeholder="Día (1-31)" min="1" max="31" required />
+            <input type="text" id="factura-descripcion" placeholder="Descripción" required />
+            <input type="number" id="factura-monto" placeholder="Monto (opcional)" min="0" step="0.01" />
+            <button type="submit" class="btn btn-primary">Agendar</button>
+          </form>
+          <form id="form-marcar-pagada" class="inline-form">
+            <h3>Marcar pagada</h3>
+            <input type="text" id="factura-buscar" placeholder="Nombre de la factura" required />
+            <button type="submit" class="btn btn-secondary">Marcar pagada</button>
+            <p id="marcar-pagada-error" class="form-error" hidden></p>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>Próximos 30 días</h3>
+          <div id="calendario-facturas"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Resumen</h3>
+          <div id="facturas-resumen" class="panel-list"></div>
+        </div>
+
+        <div class="facturas-columnas">
+          <div class="facturas-columna facturas-columna--pendiente">
+            <h3>⏳ Pendientes</h3>
+            <div id="facturas-pendientes" class="cards-list"></div>
+          </div>
+          <div class="facturas-columna facturas-columna--pagada">
+            <h3>✅ Pagadas</h3>
+            <div id="facturas-pagadas" class="cards-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ AHORROS ============ -->
+      <section id="tab-ahorros" class="tab-panel">
+        <div class="form-card form-card--split">
+          <form id="form-invertir" class="inline-form">
+            <h3>Invertir</h3>
+            <input type="number" id="invertir-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <select id="invertir-tipo" required>
+              <option value="UALA">UALA 19%</option>
+              <option value="Galicia">Galicia 16%</option>
+              <option value="Mercado">Mercado 15%</option>
+              <option value="FIMA A">FIMA A 24%</option>
+              <option value="FIMA B">FIMA B 26%</option>
+              <option value="FIMA C">FIMA C 22%</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Invertir</button>
+          </form>
+          <form id="form-retirar" class="inline-form">
+            <h3>Retirar</h3>
+            <input type="number" id="retirar-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <select id="retirar-tipo" required>
+              <option value="UALA">UALA</option>
+              <option value="Galicia">Galicia</option>
+              <option value="Mercado">Mercado</option>
+              <option value="FIMA A">FIMA A</option>
+              <option value="FIMA B">FIMA B</option>
+              <option value="FIMA C">FIMA C</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <button type="submit" class="btn btn-secondary">Retirar</button>
+            <p id="retirar-error" class="form-error" hidden></p>
+          </form>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-box"><h3>Por tipo de inversión</h3><canvas id="chart-ahorros-dona"></canvas></div>
+          <div class="chart-box"><h3>Evolución (12 meses)</h3><canvas id="chart-ahorros-linea12m"></canvas></div>
+        </div>
+
+        <div class="listado-card">
+          <table class="tabla">
+            <thead><tr><th>Tipo</th><th>Monto</th><th>Rentabilidad est.</th><th>Fecha</th><th></th></tr></thead>
+            <tbody id="tabla-ahorros"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <h3>Analizador de rendimientos</h3>
+          <form id="form-analizador" class="inline-form">
+            <input type="number" id="analizador-monto" placeholder="Monto" min="0.01" step="0.01" required />
+            <input type="number" id="analizador-dias" placeholder="Días" min="1" step="1" required />
+            <button type="submit" class="btn btn-secondary">Comparar</button>
+          </form>
+          <div id="analizador-resultado" class="panel-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ RECORDATORIOS ============ -->
+      <section id="tab-recordatorios" class="tab-panel">
+        <div class="form-card">
+          <form id="form-recordatorio" class="inline-form">
+            <input type="text" id="recordatorio-descripcion" placeholder="Descripción" required />
+            <input type="date" id="recordatorio-fecha" required />
+            <input type="time" id="recordatorio-hora" />
+            <button type="submit" class="btn btn-primary">Agregar recordatorio</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>Próximos 30 días</h3>
+          <div id="calendario-recordatorios"></div>
+        </div>
+
+        <div class="listado-card">
+          <table class="tabla">
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Descripción</th><th>Completado</th><th></th></tr></thead>
+            <tbody id="tabla-recordatorios"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================== CHAT FLOTANTE ===================== -->
+  <div id="floating-chat" class="floating-chat" hidden>
+    <button id="btn-chat-toggle" class="chat-toggle-btn">💬</button>
+    <span id="chat-unread-badge" class="chat-unread-badge" hidden>0</span>
+    <div id="chat-panel" class="chat-panel" hidden>
+      <div class="chat-panel-header">
+        <span>Asistente FinanzasApp</span>
+        <button id="btn-chat-close" class="btn btn-icon">✕</button>
+      </div>
+      <div id="chat-messages" class="chat-messages"></div>
+      <form id="form-chat" class="chat-form">
+        <input type="text" id="chat-input" placeholder='Ej: "gaste 1500 comida"' autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Chart.js por CDN (build UMD, sin bundler) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <!-- Cliente de Supabase por CDN (build UMD, expone window.supabase) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

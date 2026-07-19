@@ -1,0 +1,381 @@
+/* ===================== Variables de tema ===================== */
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface-alt: #f0f1f6;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --warning: #d97706;
+  --warning-bg: #fef3c7;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --radius: 10px;
+}
+
+[data-theme='dark'] {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-alt: #20232f;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border: #2a2e3a;
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --success: #22c55e;
+  --success-bg: #14532d;
+  --danger: #ef4444;
+  --danger-bg: #450a0a;
+  --warning: #f59e0b;
+  --warning-bg: #451a03;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+* { box-sizing: border-box; }
+
+/* El atributo hidden debe ganar siempre, aunque la clase del elemento
+   declare su propio display (flex/block) — si no, gana la regla de
+   autor y el elemento sigue visible pese a estar "hidden". */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+/* ===================== Botones ===================== */
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btn-danger-outline:hover { background: var(--danger-bg); }
+.btn-icon { background: transparent; color: var(--text); font-size: 1.1rem; padding: 0.4rem 0.6rem; }
+.btn-icon:hover { background: var(--surface-alt); }
+
+/* ===================== Auth ===================== */
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.auth-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+}
+.auth-logo { text-align: center; margin: 0 0 1.5rem; }
+.auth-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.auth-form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem; color: var(--text-muted); }
+.auth-form input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+.auth-switch { text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+.auth-switch a { color: var(--primary); }
+.form-error { color: var(--danger); font-size: 0.85rem; }
+.form-info { color: var(--success); font-size: 0.85rem; }
+
+.banner {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.banner--warning { background: var(--warning-bg); color: var(--warning); }
+
+/* ===================== Layout general de la app ===================== */
+.app-screen { min-height: 100vh; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.app-logo { font-weight: 700; font-size: 1.1rem; }
+.app-header-right { display: flex; align-items: center; gap: 0.6rem; }
+.usuario-nombre { color: var(--text-muted); font-size: 0.9rem; }
+
+.tabs-nav {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.6rem 1.5rem 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tab-btn.is-active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.tabs-content { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.is-active { display: block; }
+
+/* ===================== Cards del dashboard ===================== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+  cursor: default;
+}
+.card--clickable { cursor: pointer; }
+.card--clickable:hover { border-color: var(--primary); }
+.card-label { font-size: 0.85rem; color: var(--text-muted); }
+.card-value { font-size: 1.5rem; font-weight: 700; }
+.card-value--ok { color: var(--success); }
+.card-value--danger { color: var(--danger); }
+.card-value--warning { color: var(--warning); }
+
+/* ===================== Charts ===================== */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.charts-grid--3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.chart-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+.chart-box h3 { margin: 0 0 0.75rem; font-size: 0.95rem; }
+
+/* ===================== Panels ===================== */
+.panels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.panel h3 { margin: 0 0 0.75rem; font-size: 0.95rem; }
+.panel-list { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem; }
+.panel-list-row { display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--border); }
+.panel-list-row:last-child { border-bottom: none; }
+.panel-empty { color: var(--text-muted); font-style: italic; }
+
+/* ===================== Forms ===================== */
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.form-card--split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.form-card--split h3 { margin: 0 0 0.5rem; font-size: 0.9rem; color: var(--text-muted); }
+.inline-form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.inline-form input, .inline-form select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  flex: 1 1 140px;
+}
+
+/* ===================== Tablas ===================== */
+.listado-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+.listado-actions { display: flex; gap: 0.6rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.tabla th, .tabla td { text-align: left; padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--border); }
+.tabla tfoot td { font-weight: 700; }
+.tabla-eliminar { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; }
+.subtotales { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.subtotal-chip { background: var(--surface-alt); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+
+/* ===================== Facturas ===================== */
+.facturas-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.facturas-columna h3 { margin-bottom: 0.75rem; }
+.cards-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.factura-card {
+  border-radius: var(--radius);
+  padding: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+.factura-card--pendiente { background: var(--warning-bg); border: 1px solid var(--warning); }
+.factura-card--pagada { background: var(--success-bg); border: 1px solid var(--success); }
+.factura-card-info { display: flex; flex-direction: column; gap: 0.2rem; }
+.factura-card-nombre { font-weight: 600; }
+.factura-card-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+.calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.35rem;
+}
+.calendario-celda {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.calendario-celda--vence { background: var(--warning-bg); color: var(--warning); font-weight: 700; }
+.calendario-punto { position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--warning); }
+
+/* ===================== Recordatorios ===================== */
+.fila-recordatorio--pendiente > td:not(:last-child) { color: var(--danger); font-weight: 600; }
+.fila-recordatorio--completado > td:not(:last-child) { color: var(--text-muted); }
+.fila-recordatorio--completado .recordatorio-descripcion { text-decoration: line-through; }
+
+/* ===================== Chat flotante ===================== */
+.floating-chat { position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 50; }
+.chat-toggle-btn {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--primary); color: white; border: none;
+  font-size: 1.4rem; cursor: pointer; box-shadow: var(--shadow);
+}
+.chat-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--danger);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+.chat-panel {
+  position: absolute;
+  bottom: 68px;
+  right: 0;
+  width: 320px;
+  max-height: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.chat-panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.9rem;
+}
+.chat-messages { flex: 1; overflow-y: auto; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.5rem; min-height: 180px; }
+.chat-msg { font-size: 0.85rem; padding: 0.45rem 0.6rem; border-radius: 8px; max-width: 90%; }
+.chat-msg--user { align-self: flex-end; background: var(--primary); color: white; }
+.chat-msg--ok { align-self: flex-start; background: var(--success-bg); color: var(--success); }
+.chat-msg--error { align-self: flex-start; background: var(--danger-bg); color: var(--danger); }
+.chat-msg-hora { display: block; margin-top: 0.15rem; font-size: 0.65rem; opacity: 0.7; text-align: right; }
+.chat-form { display: flex; gap: 0.4rem; padding: 0.6rem; border-top: 1px solid var(--border); }
+.chat-form input { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+
+/* ===================== Toasts ===================== */
+.toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--danger);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  max-width: 320px;
+  animation: toast-in 0.2s ease;
+}
+.toast--ok { border-left-color: var(--success); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== Responsive ===================== */
+@media (max-width: 720px) {
+  .form-card--split { grid-template-columns: 1fr; }
+  .facturas-columnas { grid-template-columns: 1fr; }
+  .tabs-content { padding: 1rem; }
+  .chat-panel { width: calc(100vw - 2.5rem); }
+}

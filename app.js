@@ -613,12 +613,13 @@ document.getElementById('form-agendar-factura').addEventListener('submit', async
   }
 });
 
-// Click en el calendario del mes: precarga el día de vencimiento en el
-// formulario de agendar (la fecha de alta sigue siendo la de hoy/elegida
-// en #factura-fecha, son conceptos distintos).
+// Click en el calendario del mes: precarga tanto el día de vencimiento
+// como la fecha completa en el formulario de agendar, con la fecha de
+// la celda clickeada.
 document.getElementById('calendario-facturas').addEventListener('click', (e) => {
   const celda = e.target.closest('[data-fecha]');
   if (!celda) return;
+  document.getElementById('factura-fecha').value = celda.dataset.fecha;
   document.getElementById('factura-dia').value = String(Number(celda.dataset.fecha.slice(8, 10)));
 });
 

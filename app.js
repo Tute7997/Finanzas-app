@@ -180,7 +180,16 @@ function mostrarAuth() {
 async function manejarCallbackGoogleSiCorresponde() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
-  if (!code) return;
+  const errorGoogle = params.get('error');
+
+  if (!code && !errorGoogle) return;
+
+  if (errorGoogle) {
+    sessionStorage.removeItem('google_oauth_state');
+    history.replaceState({}, '', window.location.pathname);
+    mostrarToast('No se conectó Google Calendar: ' + errorGoogle);
+    return;
+  }
 
   const stateRecibido = params.get('state');
   const stateEsperado = sessionStorage.getItem('google_oauth_state');
@@ -716,6 +725,34 @@ document.getElementById('form-analizador').addEventListener('submit', (e) => {
 // ---------------------------------------------------------------------
 // Recordatorios
 // ---------------------------------------------------------------------
+// Selector de día (dropdown 1-31) sincronizado con el date picker: cambiar
+// uno actualiza el otro, conservando mes/año.
+function diasEnMes(anio, mes) {
+  return new Date(anio, mes, 0).getDate(); // mes 1-indexado acá
+}
+
+function sincronizarDiaDesdeFecha() {
+  const fecha = document.getElementById('recordatorio-fecha').value;
+  const selectDia = document.getElementById('recordatorio-dia');
+  if (!fecha) return;
+  selectDia.value = String(Number(fecha.slice(8, 10)));
+}
+
+function sincronizarFechaDesdeDia() {
+  const selectDia = document.getElementById('recordatorio-dia');
+  const inputFecha = document.getElementById('recordatorio-fecha');
+  const diaElegido = Number(selectDia.value);
+  if (!diaElegido) return;
+  const base = inputFecha.value ? new Date(inputFecha.value + 'T00:00:00') : new Date();
+  const anio = base.getFullYear();
+  const mes = base.getMonth() + 1;
+  const diaValido = Math.min(diaElegido, diasEnMes(anio, mes));
+  inputFecha.value = `${anio}-${String(mes).padStart(2, '0')}-${String(diaValido).padStart(2, '0')}`;
+}
+
+document.getElementById('recordatorio-fecha').addEventListener('change', sincronizarDiaDesdeFecha);
+document.getElementById('recordatorio-dia').addEventListener('change', sincronizarFechaDesdeDia);
+
 document.getElementById('form-recordatorio').addEventListener('submit', async (e) => {
   e.preventDefault();
   const descripcion = document.getElementById('recordatorio-descripcion').value.trim();

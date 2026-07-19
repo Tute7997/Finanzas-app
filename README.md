@@ -40,6 +40,7 @@ app.js                                estado global, eventos, orquestación
 schema.sql                            schema completo de Supabase (tablas + RLS)
 api/google-token-exchange.js          función serverless: code → tokens de Google
 api/google-token-refresh.js           función serverless: refresca el access token
+api/auth/google/callback.js           función serverless: redirect_uri registrado en Google, reenvía code/state a la SPA
 ```
 
 ## Alcance de esta versión
@@ -66,7 +67,7 @@ Setup:
 
 1. Creá un proyecto en [Google Cloud Console](https://console.cloud.google.com/) y habilitá la **Google Calendar API** (APIs & Services > Library).
 2. En **APIs & Services > Credentials**, creá un **OAuth 2.0 Client ID** de tipo **Web application**.
-3. En **Authorized redirect URIs**, agregá la URL raíz exacta de tu app (con la barra final), por ejemplo `https://tu-app.vercel.app/` para producción y `http://localhost:8000/` (o el puerto que uses) para probar en local — tiene que coincidir exacto con lo que calcula `google-config.js` (`window.location.origin + window.location.pathname`).
+3. En **Authorized redirect URIs**, agregá `https://tu-dominio/api/auth/google/callback` para cada dominio desde el que vayas a probar (por ejemplo `https://tu-app.vercel.app/api/auth/google/callback` para producción, y el que corresponda para cada preview de Vercel o para probar en local con `vercel dev`) — tiene que coincidir exacto con lo que calcula `google-config.js` (`window.location.origin + '/api/auth/google/callback'`). Ese endpoint es una función serverless (`api/auth/google/callback.js`) que solo reenvía `code`/`state` de vuelta a la app — no hace falta tocarla.
 4. Copiá el **Client ID** generado y pegalo en [`google-config.js`](google-config.js), en `GOOGLE_CLIENT_ID` (es público, no hay problema en commitearlo).
 5. En Vercel, andá a **Settings > Environment Variables** de tu proyecto y cargá (nunca en un archivo del repo):
    ```

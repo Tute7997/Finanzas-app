@@ -753,6 +753,15 @@ function sincronizarFechaDesdeDia() {
 document.getElementById('recordatorio-fecha').addEventListener('change', sincronizarDiaDesdeFecha);
 document.getElementById('recordatorio-dia').addEventListener('change', sincronizarFechaDesdeDia);
 
+// Click en el calendario de 30 días: precarga la fecha (y sincroniza el
+// dropdown de día) sin que el usuario tenga que escribir nada.
+document.getElementById('calendario-recordatorios').addEventListener('click', (e) => {
+  const celda = e.target.closest('[data-fecha]');
+  if (!celda) return;
+  document.getElementById('recordatorio-fecha').value = celda.dataset.fecha;
+  sincronizarDiaDesdeFecha();
+});
+
 document.getElementById('form-recordatorio').addEventListener('submit', async (e) => {
   e.preventDefault();
   const descripcion = document.getElementById('recordatorio-descripcion').value.trim();

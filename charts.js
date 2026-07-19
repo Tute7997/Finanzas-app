@@ -216,7 +216,7 @@ export function renderCalendario30Dias(items, matchFn) {
     const dia = d.getDate();
     const marcado = items.some((item) => matchFn(d, item));
     celdas.push(
-      `<div class="calendario-celda${marcado ? ' calendario-celda--vence' : ''}" title="${d.toLocaleDateString('es-AR')}">` +
+      `<div class="calendario-celda${marcado ? ' calendario-celda--vence' : ''}" data-fecha="${formatISODate(d)}" title="${d.toLocaleDateString('es-AR')}">` +
         `<span class="calendario-dia">${dia}</span>${marcado ? '<span class="calendario-punto"></span>' : ''}` +
         `</div>`
     );

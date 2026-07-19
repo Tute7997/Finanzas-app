@@ -89,6 +89,7 @@
       <button class="tab-btn" data-tab="facturas">📑 Facturas</button>
       <button class="tab-btn" data-tab="ahorros">💰 Ahorros</button>
       <button class="tab-btn" data-tab="recordatorios">⏰ Recordatorios</button>
+      <button class="tab-btn" data-tab="ajustes">⚙️ Ajustes</button>
     </nav>
 
     <main class="tabs-content">
@@ -319,7 +320,6 @@
             <input type="time" id="recordatorio-hora" />
             <button type="submit" class="btn btn-primary">Agregar recordatorio</button>
           </form>
-          <button id="btn-conectar-google-calendar" class="btn btn-secondary" hidden>📅 Conectar Google Calendar</button>
         </div>
 
         <div class="panel">
@@ -332,6 +332,41 @@
             <thead><tr><th>Fecha</th><th>Hora</th><th>Descripción</th><th>Completado</th><th></th></tr></thead>
             <tbody id="tabla-recordatorios"></tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- ============ AJUSTES ============ -->
+      <section id="tab-ajustes" class="tab-panel">
+        <div class="form-card">
+          <h3>Perfil</h3>
+          <form id="form-ajustes-perfil" class="inline-form">
+            <input type="text" id="ajustes-nombre" placeholder="Nombre" />
+            <input type="text" id="ajustes-email" readonly />
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>📅 Google Calendar</h3>
+          <p id="ajustes-calendar-estado" class="panel-empty">No conectado ❌</p>
+          <button id="btn-ajustes-conectar-calendar" class="btn btn-primary">Conectar Google Calendar</button>
+          <button id="btn-ajustes-desconectar-calendar" class="btn btn-danger-outline" hidden>Desconectar Google Calendar</button>
+        </div>
+
+        <div class="panel">
+          <h3>🤖 WhatsApp / Telegram (Bot)</h3>
+          <p class="panel-empty">Próximamente vas a poder registrar ingresos, gastos y recordatorios directo desde WhatsApp o Telegram, igual que en el chat de acá abajo.</p>
+          <button class="btn btn-secondary" disabled>Próximamente</button>
+        </div>
+
+        <div class="panel">
+          <h3>💬 Chat</h3>
+          <button id="btn-ajustes-ir-chat" class="btn btn-secondary">Ir al Chat</button>
+        </div>
+
+        <div class="panel">
+          <h3>Cuenta</h3>
+          <button id="btn-ajustes-logout" class="btn btn-danger-outline">Cerrar sesión</button>
         </div>
       </section>
 

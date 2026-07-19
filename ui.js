@@ -259,8 +259,19 @@ export function renderRecordatorios(state) {
 
   const pendientes = state.recordatorios.filter((r) => !r.completado);
   document.getElementById('calendario-recordatorios').innerHTML = renderCalendarioRecordatorios(pendientes);
+}
 
-  document.getElementById('btn-conectar-google-calendar').hidden = Boolean(state.usuario && state.usuario.google_calendar_conectado);
+// ---------------------------------------------------------------------
+// Ajustes
+// ---------------------------------------------------------------------
+export function renderAjustes(state) {
+  document.getElementById('ajustes-nombre').value = (state.usuario && state.usuario.nombre) || '';
+  document.getElementById('ajustes-email').value = (state.usuario && state.usuario.email) || '';
+
+  const conectado = Boolean(state.usuario && state.usuario.google_calendar_conectado);
+  document.getElementById('ajustes-calendar-estado').textContent = conectado ? 'Conectado ✅' : 'No conectado ❌';
+  document.getElementById('btn-ajustes-conectar-calendar').hidden = conectado;
+  document.getElementById('btn-ajustes-desconectar-calendar').hidden = !conectado;
 }
 
 // ---------------------------------------------------------------------
@@ -295,5 +306,6 @@ export function renderAll(state) {
   renderFacturas(state);
   renderAhorros(state);
   renderRecordatorios(state);
+  renderAjustes(state);
   renderChatLog(state);
 }

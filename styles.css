@@ -68,6 +68,7 @@ button, input, select {
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn-primary { background: var(--primary); color: white; }
 .btn-primary:hover { background: var(--primary-hover); }
 .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
@@ -246,6 +247,7 @@ button, input, select {
   color: var(--text);
   flex: 1 1 140px;
 }
+.inline-form input[readonly] { opacity: 0.6; cursor: not-allowed; }
 
 /* ===================== Tablas ===================== */
 .listado-card {

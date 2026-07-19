@@ -106,3 +106,17 @@ export async function eliminarEventoCalendar(accessToken, eventId) {
   const data = await res.json().catch(() => ({}));
   throw new Error(data.error?.message || 'No se pudo borrar el evento de Google Calendar.');
 }
+
+// Endpoint público de Google, no necesita client secret. Tolerante a
+// fallos (token ya vencido/inválido) — el caller desconecta igual del
+// lado de la app aunque esto falle.
+export async function revocarToken(accessToken) {
+  try {
+    await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(accessToken)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+  } catch (err) {
+    console.error('Error revocando el token de Google:', err);
+  }
+}

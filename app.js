@@ -34,6 +34,7 @@ import {
   refrescarTokenSiHaceFalta,
   crearEventoCalendar,
   eliminarEventoCalendar,
+  revocarToken,
 } from './google-calendar-client.js';
 import {
   renderAll,
@@ -44,6 +45,8 @@ import {
   renderAhorros,
   renderAnalizador,
   renderRecordatorios,
+  renderAjustes,
+  renderUsuario,
   renderChatLog,
   switchTab,
   applyTheme,
@@ -330,10 +333,13 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
   }
 });
 
-document.getElementById('btn-logout').addEventListener('click', async () => {
+async function cerrarSesion() {
   await auth.signOut();
   mostrarToast('Sesión cerrada', 'ok');
-});
+}
+
+document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
+document.getElementById('btn-ajustes-logout').addEventListener('click', cerrarSesion);
 
 // ---------------------------------------------------------------------
 // Términos y condiciones
@@ -369,9 +375,43 @@ document.getElementById('form-terminos').addEventListener('submit', async (e) =>
   }
 });
 
-document.getElementById('btn-conectar-google-calendar').addEventListener('click', () => {
+document.getElementById('btn-ajustes-conectar-calendar').addEventListener('click', () => {
   if (!googleClientIdConfigurado()) return mostrarToast('Google Calendar no está configurado todavía (ver google-config.js).');
   window.location.href = buildAuthUrl();
+});
+
+async function desconectarGoogleCalendar() {
+  if (!confirm('¿Desconectar Google Calendar?')) return;
+  try {
+    if (state.usuario.google_calendar_token) {
+      await revocarToken(state.usuario.google_calendar_token);
+    }
+    state.usuario = await actualizarUsuario(state.usuario.id, {
+      google_calendar_conectado: false,
+      google_calendar_token: null,
+      google_calendar_refresh_token: null,
+      google_calendar_expiry: null,
+    });
+    renderAjustes(state);
+    mostrarToast('Google Calendar desconectado.', 'ok');
+  } catch (err) {
+    mostrarToast('Error al desconectar: ' + mensajeErrorAmigable(err));
+  }
+}
+
+document.getElementById('btn-ajustes-desconectar-calendar').addEventListener('click', desconectarGoogleCalendar);
+
+document.getElementById('form-ajustes-perfil').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nombre = document.getElementById('ajustes-nombre').value.trim() || null;
+  try {
+    state.usuario = await actualizarUsuario(state.usuario.id, { nombre });
+    renderUsuario(state);
+    renderAjustes(state);
+    mostrarToast('Cambios guardados.', 'ok');
+  } catch (err) {
+    mostrarToast('Error al guardar: ' + mensajeErrorAmigable(err));
+  }
 });
 
 // ---------------------------------------------------------------------
@@ -745,14 +785,19 @@ function actualizarBadgeChat() {
   }
 }
 
+function abrirChat() {
+  document.getElementById('chat-panel').hidden = false;
+  chatNoLeidos = 0;
+  actualizarBadgeChat();
+}
+
 document.getElementById('btn-chat-toggle').addEventListener('click', () => {
   const panel = document.getElementById('chat-panel');
   panel.hidden = !panel.hidden;
-  if (!panel.hidden) {
-    chatNoLeidos = 0;
-    actualizarBadgeChat();
-  }
+  if (!panel.hidden) abrirChat();
 });
+
+document.getElementById('btn-ajustes-ir-chat').addEventListener('click', abrirChat);
 document.getElementById('btn-chat-close').addEventListener('click', () => {
   document.getElementById('chat-panel').hidden = true;
 });

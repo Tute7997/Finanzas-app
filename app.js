@@ -538,7 +538,7 @@ document.getElementById('tabla-gastos').addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-accion="eliminar-gasto"]');
   if (!btn) return;
   if (!confirm('¿Eliminar este gasto?')) return;
-  const id = Number(btn.dataset.id);
+  const id = btn.dataset.id;
   try {
     await deleteGasto(id);
     state.gastos = state.gastos.filter((g) => g.id !== id);
@@ -799,7 +799,7 @@ document.getElementById('tabla-recordatorios').addEventListener('click', async (
 document.getElementById('tabla-recordatorios').addEventListener('change', async (e) => {
   const checkbox = e.target.closest('[data-accion="toggle-completado"]');
   if (!checkbox) return;
-  const id = Number(checkbox.dataset.id);
+  const id = checkbox.dataset.id;
   const completado = checkbox.checked;
   try {
     const recordatorio = state.recordatorios.find((r) => r.id === id);

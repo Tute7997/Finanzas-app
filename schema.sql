@@ -197,3 +197,11 @@ alter table public.usuarios
 
 alter table public.recordatorios
   add column if not exists google_calendar_event_id text;
+
+-- =====================================================================
+-- Ampliación: falta política de INSERT en usuarios
+-- (correr solo esta línea si ya corriste el resto de este archivo antes —
+-- create policy no es "if not exists", así que no reejecutes todo el
+-- archivo o va a fallar por políticas duplicadas)
+-- =====================================================================
+create policy "usuarios_insert_own" on public.usuarios for insert with check (id = auth.uid());

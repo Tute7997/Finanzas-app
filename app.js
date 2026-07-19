@@ -350,6 +350,7 @@ document.getElementById('form-terminos').addEventListener('submit', async (e) =>
   const conectarCalendar = document.getElementById('terminos-check-calendar').checked;
   try {
     state.usuario = await actualizarUsuario(state.usuario.id, {
+      email: state.usuario.email,
       terminos_aceptados: true,
       fecha_aceptacion_terminos: new Date().toISOString(),
     });

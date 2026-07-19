@@ -196,9 +196,14 @@ export async function actualizarRecordatorio(id, patch) {
   return data;
 }
 
+// upsert (no update) a propósito: si por algún motivo la fila de usuarios
+// todavía no existe (el trigger de auth.users no llegó a crearla), esto
+// la crea en vez de fallar con "Cannot coerce the result to a single
+// JSON object" (que es lo que tira .update().select().single() cuando
+// no matchea ninguna fila).
 export async function actualizarUsuario(userId, patch) {
   const sb = getCliente();
-  const { data, error } = await sb.from('usuarios').update(patch).eq('id', userId).select().single();
+  const { data, error } = await sb.from('usuarios').upsert({ id: userId, ...patch }).select().single();
   if (error) throw error;
   return data;
 }

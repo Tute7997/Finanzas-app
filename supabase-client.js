@@ -203,7 +203,9 @@ export async function actualizarRecordatorio(id, patch) {
 // no matchea ninguna fila).
 export async function actualizarUsuario(userId, patch) {
   const sb = getCliente();
-  const { data, error } = await sb.from('usuarios').upsert({ id: userId, ...patch }).select().single();
+  const session = await sb.auth.getSession();
+  const email = session?.data?.session?.user?.email;
+  const { data, error } = await sb.from('usuarios').upsert({ id: userId, email, ...patch }).select().single();
   if (error) throw error;
   return data;
 }

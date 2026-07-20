@@ -205,3 +205,9 @@ alter table public.recordatorios
 -- archivo o va a fallar por políticas duplicadas)
 -- =====================================================================
 create policy "usuarios_insert_own" on public.usuarios for insert with check (id = auth.uid());
+
+-- =====================================================================
+-- Ampliación: notificaciones SMS (Twilio)
+-- =====================================================================
+alter table public.usuarios
+  add column if not exists phone_number text;

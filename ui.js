@@ -273,6 +273,7 @@ export function renderRecordatorios(state) {
 export function renderAjustes(state) {
   document.getElementById('ajustes-nombre').value = (state.usuario && state.usuario.nombre) || '';
   document.getElementById('ajustes-email').value = (state.usuario && state.usuario.email) || '';
+  document.getElementById('ajustes-telefono').value = (state.usuario && state.usuario.phone_number) || '';
 
   const conectado = Boolean(state.usuario && state.usuario.google_calendar_conectado);
   document.getElementById('ajustes-calendar-estado').textContent = conectado ? 'Conectado ✅' : 'No conectado ❌';

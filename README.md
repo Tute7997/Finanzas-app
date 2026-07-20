@@ -41,6 +41,10 @@ schema.sql                            schema completo de Supabase (tablas + RLS)
 api/google-token-exchange.js          función serverless: code → tokens de Google
 api/google-token-refresh.js           función serverless: refresca el access token
 api/auth/google/callback.js           función serverless: redirect_uri registrado en Google, reenvía code/state a la SPA
+api/send-sms.js                       función serverless: manda un SMS puntual vía Twilio
+api/check-facturas-vencidas.js        función serverless (cron diario): SMS de facturas que vencen hoy
+lib/twilio-server.js                  helper compartido por las dos funciones de arriba (no es una ruta)
+vercel.json                           configuración del cron diario
 ```
 
 ## Alcance de esta versión
@@ -76,6 +80,35 @@ Setup:
    GOOGLE_REDIRECT_URI = (la misma URL que registraste en el paso 3)
    ```
 6. Redeployá. Las funciones en `api/` las levanta Vercel automáticamente, no hace falta configuración extra.
+
+## Notificaciones por SMS (opcional, Twilio)
+
+Si cargás tu número en Ajustes (formato internacional, ej. `+5491122334455`), la app te manda un SMS en estos casos:
+
+- Al agendar un recordatorio.
+- Al marcar una factura como pagada.
+- Al registrar un ingreso o un gasto de más de $1000.
+- El día que vence una factura pendiente (vía un cron job diario de Vercel — no depende de que abras la app ese día).
+
+Como con Google Calendar, esto necesita credenciales que nunca pueden vivir en el frontend, así que **solo funciona desplegado en Vercel**, no con el servidor estático local. Las funciones (`api/send-sms.js`, `api/check-facturas-vencidas.js`) llaman directo a la API REST de Twilio con `fetch` (sin el SDK de `npm`, para no sumarle build tooling al proyecto).
+
+Setup:
+
+1. En tu cuenta de [Twilio](https://www.twilio.com/), conseguí el **Account SID**, el **Auth Token** y un **número de Twilio** habilitado para SMS.
+2. En Vercel, **Settings > Environment Variables**, cargá (nunca en un archivo del repo):
+   ```
+   TWILIO_ACCOUNT_SID = (tu Account SID)
+   TWILIO_AUTH_TOKEN = (tu Auth Token)
+   TWILIO_PHONE_NUMBER = (tu número de Twilio, con +código de país)
+   ```
+3. Para el cron de vencimientos (`api/check-facturas-vencidas.js`), que no corre con la sesión de ningún usuario, hace falta la **Service Role Key** de Supabase (Settings > API en tu proyecto de Supabase — **nunca** la anon key, y nunca en un archivo del repo) más la URL del proyecto:
+   ```
+   SUPABASE_URL = (la misma URL que ya usás en supabase-config.js)
+   SUPABASE_SERVICE_ROLE_KEY = (la Service Role Key de Supabase — bypassea RLS, tratala con más cuidado todavía que el resto)
+   ```
+4. (Recomendado) Agregá también `CRON_SECRET` con un valor random — Vercel lo manda automáticamente como header al invocar el cron, y la función lo valida para que nadie más pueda dispararla a mano.
+5. El cron ya está configurado en [`vercel.json`](vercel.json) para correr todos los días a las 12:00 UTC — ajustá el horario ahí si te conviene otro (los planes Hobby de Vercel piden mínimo una vez por día).
+6. Redeployá.
 
 ## Notas de diseño
 

@@ -1,6 +1,6 @@
 // Función serverless invocada por el cron de Vercel (ver vercel.json)
 // una vez por día. Revisa TODAS las facturas pendientes de TODOS los
-// usuarios cuyo día de vencimiento sea hoy, y les manda un SMS si
+// usuarios cuyo día de vencimiento sea hoy, y les manda un WhatsApp si
 // tienen phone_number cargado.
 //
 // A diferencia del resto de las funciones de /api, esta no tiene sesión
@@ -8,7 +8,7 @@
 // la Supabase Service Role Key, que bypassea RLS, en vez del anon key.
 // Esa key NUNCA debe usarse del lado del cliente.
 
-const { enviarSMSTwilio } = require('../lib/twilio-server.js');
+const { enviarWhatsAppTwilio } = require('../lib/twilio-server.js');
 
 async function supabaseFetch(path) {
   const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
         if (!phone) continue;
 
         const monto = factura.monto != null ? ` - $${Number(factura.monto).toLocaleString('es-AR')}` : '';
-        await enviarSMSTwilio({ to: phone, body: `FinanzasApp: Factura '${factura.descripcion}' vence HOY${monto}` });
+        await enviarWhatsAppTwilio({ to: phone, body: `FinanzasApp: Factura '${factura.descripcion}' vence HOY${monto}` });
         enviados++;
       } catch (err) {
         console.error(`Error notificando factura ${factura.id}:`, err.message);

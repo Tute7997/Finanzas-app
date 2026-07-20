@@ -102,20 +102,20 @@ function mensajeErrorAmigable(err) {
 }
 
 // ---------------------------------------------------------------------
-// SMS (Twilio, vía /api/send-sms). Best-effort: si falla, solo se
+// WhatsApp (Twilio, vía /api/send-sms). Best-effort: si falla, solo se
 // loguea — nunca bloquea la acción principal (guardar el ingreso,
 // marcar la factura pagada, etc).
 // ---------------------------------------------------------------------
-async function notificarSMS(mensaje) {
+async function notificarWhatsApp(mensaje) {
   if (!state.usuario || !state.usuario.phone_number) return;
   try {
     await fetch('/api/send-sms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: state.usuario.phone_number, body: mensaje }),
+      body: JSON.stringify({ to: state.usuario.phone_number, body: mensaje, channel: 'whatsapp' }),
     });
   } catch (err) {
-    console.error('Error enviando SMS:', err);
+    console.error('Error enviando WhatsApp:', err);
   }
 }
 
@@ -479,7 +479,7 @@ document.getElementById('form-ingreso').addEventListener('submit', async (e) => 
     renderDashboard(state);
     e.target.reset();
     precargarFechaHoy('ingreso-fecha');
-    if (monto > 1000) await notificarSMS(`FinanzasApp: Ingreso registrado: ${formatMonto(monto)} - ${descripcion || categoria}`);
+    if (monto > 1000) await notificarWhatsApp(`FinanzasApp: Ingreso registrado: ${formatMonto(monto)} - ${descripcion || categoria}`);
   } catch (err) {
     mostrarToast('Error al registrar el ingreso: ' + err.message);
   }
@@ -534,7 +534,7 @@ document.getElementById('form-gasto').addEventListener('submit', async (e) => {
     renderDashboard(state);
     e.target.reset();
     precargarFechaHoy('gasto-fecha');
-    if (monto > 1000) await notificarSMS(`FinanzasApp: Gasto registrado: ${formatMonto(monto)} - ${descripcion || categoria}`);
+    if (monto > 1000) await notificarWhatsApp(`FinanzasApp: Gasto registrado: ${formatMonto(monto)} - ${descripcion || categoria}`);
   } catch (err) {
     mostrarToast('Error al registrar el gasto: ' + err.message);
   }
@@ -670,7 +670,7 @@ document.getElementById('form-marcar-pagada').addEventListener('submit', async (
     renderFacturas(state);
     renderDashboard(state);
     e.target.reset();
-    await notificarSMS(`FinanzasApp: Factura '${actualizada.descripcion}' marcada como pagada`);
+    await notificarWhatsApp(`FinanzasApp: Factura '${actualizada.descripcion}' marcada como pagada`);
   } catch (err) {
     mostrarToast('Error al marcar como pagada: ' + err.message);
   }
@@ -686,7 +686,7 @@ document.getElementById('tab-facturas').addEventListener('click', async (e) => {
       state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f));
       renderFacturas(state);
       renderDashboard(state);
-      await notificarSMS(`FinanzasApp: Factura '${actualizada.descripcion}' marcada como pagada`);
+      await notificarWhatsApp(`FinanzasApp: Factura '${actualizada.descripcion}' marcada como pagada`);
     } else if (btnDeshacer) {
       const actualizada = await deshacerPagoFactura(btnDeshacer.dataset.id);
       state.facturas = state.facturas.map((f) => (f.id === actualizada.id ? actualizada : f));
@@ -831,7 +831,7 @@ document.getElementById('form-recordatorio').addEventListener('submit', async (e
     state.recordatorios.unshift(filaFinal);
     renderRecordatorios(state);
     e.target.reset();
-    await notificarSMS(`FinanzasApp: Recordatorio: ${descripcion} para ${formatFecha(fecha)}`);
+    await notificarWhatsApp(`FinanzasApp: Recordatorio: ${descripcion} para ${formatFecha(fecha)}`);
   } catch (err) {
     mostrarToast('Error al agendar el recordatorio: ' + err.message);
   }
@@ -930,7 +930,7 @@ async function manejarComandoChat(texto) {
       renderDashboard(state);
       reply = `Gasto registrado: ${formatMonto(resultado.payload.monto)} en ${resultado.payload.categoria}.`;
       status = 'OK';
-      if (resultado.payload.monto > 1000) await notificarSMS(`FinanzasApp: Gasto registrado: ${formatMonto(resultado.payload.monto)} - ${resultado.payload.descripcion || resultado.payload.categoria}`);
+      if (resultado.payload.monto > 1000) await notificarWhatsApp(`FinanzasApp: Gasto registrado: ${formatMonto(resultado.payload.monto)} - ${resultado.payload.descripcion || resultado.payload.categoria}`);
     } else if (resultado.type === 'ingreso') {
       const fila = await insertIngreso(resultado.payload);
       state.ingresos.unshift(fila);
@@ -938,7 +938,7 @@ async function manejarComandoChat(texto) {
       renderDashboard(state);
       reply = `Ingreso registrado: ${formatMonto(resultado.payload.monto)} en ${resultado.payload.categoria}.`;
       status = 'OK';
-      if (resultado.payload.monto > 1000) await notificarSMS(`FinanzasApp: Ingreso registrado: ${formatMonto(resultado.payload.monto)} - ${resultado.payload.descripcion || resultado.payload.categoria}`);
+      if (resultado.payload.monto > 1000) await notificarWhatsApp(`FinanzasApp: Ingreso registrado: ${formatMonto(resultado.payload.monto)} - ${resultado.payload.descripcion || resultado.payload.categoria}`);
     } else if (resultado.type === 'factura') {
       const fila = await insertFactura(resultado.payload);
       state.facturas.unshift(fila);
@@ -976,7 +976,7 @@ async function manejarComandoChat(texto) {
         renderDashboard(state);
         reply = `Marcaste como pagada: ${actualizada.descripcion}.`;
         status = 'OK';
-        await notificarSMS(`FinanzasApp: Factura '${actualizada.descripcion}' marcada como pagada`);
+        await notificarWhatsApp(`FinanzasApp: Factura '${actualizada.descripcion}' marcada como pagada`);
       }
     } else if (resultado.type === 'recordatorio') {
       const fila = await insertRecordatorio(resultado.payload);
@@ -985,7 +985,7 @@ async function manejarComandoChat(texto) {
       renderRecordatorios(state);
       reply = `Recordatorio agendado: "${resultado.payload.descripcion}" para el ${formatFecha(resultado.payload.fecha)}${resultado.payload.hora ? ' a las ' + resultado.payload.hora : ''}.`;
       status = 'OK';
-      await notificarSMS(`FinanzasApp: Recordatorio: ${resultado.payload.descripcion} para ${formatFecha(resultado.payload.fecha)}`);
+      await notificarWhatsApp(`FinanzasApp: Recordatorio: ${resultado.payload.descripcion} para ${formatFecha(resultado.payload.fecha)}`);
     }
   } catch (err) {
     console.error('Error procesando comando de chat:', err);

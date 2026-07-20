@@ -279,6 +279,9 @@ export function renderAjustes(state) {
   document.getElementById('ajustes-calendar-estado').textContent = conectado ? 'Conectado ✅' : 'No conectado ❌';
   document.getElementById('btn-ajustes-conectar-calendar').hidden = conectado;
   document.getElementById('btn-ajustes-desconectar-calendar').hidden = !conectado;
+
+  const whatsappConectado = Boolean(state.usuario && state.usuario.phone_number);
+  document.getElementById('ajustes-whatsapp-estado').textContent = whatsappConectado ? 'Conectado ✅' : 'No conectado ❌';
 }
 
 // ---------------------------------------------------------------------

@@ -458,10 +458,10 @@
           <form id="form-ajustes-perfil" class="inline-form">
             <input type="text" id="ajustes-nombre" placeholder="Nombre" />
             <input type="text" id="ajustes-email" readonly />
-            <input type="tel" id="ajustes-telefono" placeholder="+549... (para SMS)" />
+            <input type="tel" id="ajustes-telefono" placeholder="+549... (para WhatsApp)" />
             <button type="submit" class="btn btn-primary">Guardar cambios</button>
           </form>
-          <p class="panel-empty">Número de celular en formato internacional (ej: +5491122334455), para recibir avisos por SMS.</p>
+          <p class="panel-empty">Número de celular en formato internacional (ej: +5491122334455), para recibir avisos y usar el bot por WhatsApp.</p>
         </div>
 
         <div class="panel">
@@ -472,9 +472,9 @@
         </div>
 
         <div class="panel">
-          <h3>🤖 WhatsApp / Telegram (Bot)</h3>
-          <p class="panel-empty">Próximamente vas a poder registrar ingresos, gastos y recordatorios directo desde WhatsApp o Telegram, igual que en el chat de acá abajo.</p>
-          <button class="btn btn-secondary" disabled>Próximamente</button>
+          <h3>🤖 WhatsApp Bot</h3>
+          <p id="ajustes-whatsapp-estado" class="panel-empty">No conectado ❌</p>
+          <p class="panel-empty">Con el número guardado arriba, escribile al número de WhatsApp de FinanzasApp los mismos comandos que usás en el chat de acá abajo (ej: <em>"gaste 1500 comida"</em>, <em>"recordame ir al gym el 25"</em>) y te va a contestar por WhatsApp.</p>
         </div>
 
         <div class="panel">
